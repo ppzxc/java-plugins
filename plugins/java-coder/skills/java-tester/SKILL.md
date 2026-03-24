@@ -146,11 +146,15 @@ class OrderIntegrationTest {
         registry.add("spring.datasource.password", postgres::getPassword);
     }
 
-    @Autowired TestRestTemplate restTemplate;
+    @Autowired TestRestClient restClient;
 
     @Test
     void createOrder_fullFlow_returns201WithLocation() {
-        var response = restTemplate.postForEntity("/api/orders", request, Void.class);
+        var response = restClient.post()
+            .uri("/api/orders")
+            .body(request)
+            .retrieve()
+            .toBodilessEntity();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getHeaders().getLocation()).isNotNull();
@@ -165,10 +169,12 @@ class OrderIntegrationTest {
 Mock **only at architectural boundaries** — never mock what you own within the same layer.
 
 ```java
-// ✅ Correct: Service mocks Repository (crosses infra boundary)
-@MockBean OrderRepository repository;
+// ✅ Unit test (no Spring context): use @Mock
+@Mock OrderRepository repository;
+@Mock EmailClient emailClient;
 
-// ✅ Correct: Service mocks external EmailClient (crosses external boundary)
+// ✅ Slice/integration test (Spring context): use @MockBean
+@MockBean OrderRepository repository;
 @MockBean EmailClient emailClient;
 
 // ❌ Wrong: Don't mock domain objects — use real instances
@@ -176,6 +182,8 @@ Mock **only at architectural boundaries** — never mock what you own within the
 ```
 
 Rule: if you own the code and it has no external I/O, use the real implementation.
+`@Mock` for `@ExtendWith(MockitoExtension.class)` tests (no Spring context).
+`@MockBean` for `@WebMvcTest` / `@SpringBootTest` tests (Spring context required).
 
 ---
 

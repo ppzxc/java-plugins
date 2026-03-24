@@ -1,0 +1,21 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "java-skills",
+  "owner": {
+    "name": "ppzxc",
+    "email": "cjh8487@naver.com",
+    "url": "https://ppzxc.github.io"
+  },
+  "metadata": {
+    "description": "Java skills marketplace — production-grade Java patterns and best practices",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "java-skills",
+      "source": "./plugins/java-skills",
+      "description": "Production-grade Java patterns — Java 25, Spring Boot 4, DDD, TDD, and stability patterns",
+      "version": "0.0.1"
+    }
+  ]
+}

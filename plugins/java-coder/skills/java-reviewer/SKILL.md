@@ -113,8 +113,8 @@ Review Java code for quality, architecture compliance, and production readiness.
 | File | When to Open |
 |------|-------------|
 | `../java-coder/references/clean-and-pragmatic.md` | Naming, function size, structure rules |
-| `../java-coder/references/design-and-solid.md` | SOLID violations, GoF pattern misuse |
-| `../java-coder/references/refactoring-catalog.md` | Specific refactoring technique lookup |
+| `../java-coder/references/design-and-solid.md` | SOLID violations, GoF pattern misuse — consult when reviewing class dependencies, interface segregation, or design pattern usage |
+| `../java-coder/references/refactoring-catalog.md` | General refactoring technique lookup — consult when section guidance doesn't name the specific refactoring needed |
 | `../java-coder/references/effective-java.md` | EJ idiom violations |
 | `../java-coder/references/domain-driven-design.md` | DDD and architecture issues |
 | `../java-coder/references/spring-boot4-conventions.md` | Spring annotation and API issues |

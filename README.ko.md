@@ -30,8 +30,8 @@ Production-grade Java 패턴 레퍼런스 스킬입니다.
 ## 설치
 
 ```bash
-/plugin marketplace add ppzxc/java-skills
-/plugin install java-skills
+/plugin marketplace add ppzxc/java-plugins
+/plugin install java-plugins
 ```
 
 ## 사용 방법

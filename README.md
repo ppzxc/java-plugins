@@ -30,8 +30,8 @@ Based on eleven canonical books:
 ## Installation
 
 ```bash
-/plugin marketplace add ppzxc/java-skills
-/plugin install java-skills
+/plugin marketplace add ppzxc/java-plugins
+/plugin install java-plugins
 ```
 
 ## Usage

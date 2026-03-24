@@ -1,13 +1,13 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "java-skills",
+  "name": "java-plugins",
   "owner": {
     "name": "ppzxc",
     "email": "cjh8487@naver.com",
     "url": "https://ppzxc.github.io"
   },
   "metadata": {
-    "description": "Java skills marketplace — production-grade Java patterns and best practices",
+    "description": "Java plugins marketplace — production-grade Java patterns and best practices",
     "version": "1.0.0"
   },
   "plugins": [

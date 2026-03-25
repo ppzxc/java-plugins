@@ -1,6 +1,6 @@
-# java-coder
+# java-plugins
 
-Production-grade Java 패턴 레퍼런스 스킬입니다.
+Production-grade Java 패턴 레퍼런스 플러그인입니다.
 
 다음 11권의 책을 기반으로 작성되었습니다:
 
@@ -16,16 +16,15 @@ Production-grade Java 패턴 레퍼런스 스킬입니다.
 - *Domain-Driven Design* (Eric Evans)
 - *Release It!* (Michael Nygard)
 
-## 포함 내용
+## 스킬 구성
 
-1. **Design** — SOLID 원칙, GoF 패턴, DDD tactical 패턴
-2. **Clean Code** — 네이밍, 함수 크기, null 안전성, 에러 처리
-3. **Java 25 Features** — Records, sealed classes, pattern matching, virtual threads
-4. **Spring Boot 4 Conventions** — 생성자 주입, ProblemDetail, 트랜잭션 관리
-5. **Effective Java** — Static factory, Builder, 불변성, Optional, enum
-6. **DDD in Practice** — Aggregate, Value Object, Domain Event, 모듈 매핑
-7. **TDD & Testing** — Red-Green-Refactor, @WebMvcTest, @DataJpaTest, Testcontainers
-8. **Stability Patterns** — Timeout, Circuit Breaker, Bulkhead, Retry, virtual thread 안전성
+| 스킬 | 설명 |
+|------|------|
+| **java-coder** | 코드 작성 — SOLID, Clean Code, Effective Java, DDD, 안정성 패턴 |
+| **java-25** | Java 25 기능 — records, sealed classes, pattern matching, virtual threads, ScopedValue |
+| **spring** | Spring Boot 4 — 컨벤션, REST 패턴, 테스트 어노테이션, ProblemDetail |
+| **java-tester** | TDD 워크플로우 — Red-Green-Refactor, 커버리지 체크리스트, 테스트 더블 |
+| **java-reviewer** | 코드 리뷰 — 코드 품질, DDD, Effective Java, 안정성 체크리스트 |
 
 ## 설치
 
@@ -36,10 +35,12 @@ Production-grade Java 패턴 레퍼런스 스킬입니다.
 
 ## 사용 방법
 
-설치 후 Claude Code에서 슬래시 커맨드로 스킬을 호출합니다:
+각 스킬은 컨텍스트에 따라 자동으로 활성화됩니다. 직접 호출도 가능합니다:
 
 ```
-/java-coder
+/java-coder     # 코드 작성 및 설계
+/java-25        # Java 25 기능 레퍼런스
+/spring         # Spring Boot 4 컨벤션
+/java-tester    # TDD 및 테스트
+/java-reviewer  # 코드 리뷰
 ```
-
-Java 코드 작성, 리뷰, 리팩토링 시 자동으로 활성화되기도 합니다.

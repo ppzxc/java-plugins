@@ -2,7 +2,7 @@
 
 **Date**: 2026-03-24
 **Status**: Approved
-**Scope**: Split `java-coder` single skill into three focused skills — `java-coder`, `java-reviewer`, `java-tester`
+**Scope**: Split `java-coder` single skill into five focused skills — `java-coder`, `java-reviewer`, `java-tester`, `java-25`, `spring`
 
 ---
 
@@ -179,9 +179,11 @@ NOT for writing production code (java-coder handles that).
 ```
 plugins/java-coder/
   skills/
+    java-25/
+      SKILL.md           ← new file (Java 25 features, Virtual Thread safety)
     java-coder/
-      SKILL.md           ← modified (Step 3 → link, checklist removed, tdd-and-legacy ref removed)
-      references/        ← unchanged (8 files, shared via relative path by all 3 skills)
+      SKILL.md           ← modified (cross-references to java-25, spring, java-tester, java-reviewer)
+      references/        ← unchanged (9 files, shared via relative path by all 5 skills)
         clean-and-pragmatic.md
         design-and-solid.md
         refactoring-catalog.md
@@ -192,14 +194,16 @@ plugins/java-coder/
         release-it-stability.md
         tdd-and-legacy.md
     java-reviewer/
-      SKILL.md           ← new file (references via ../java-coder/references/)
+      SKILL.md           ← new file (code review checklists, references via ../java-coder/references/)
     java-tester/
-      SKILL.md           ← new file (references via ../java-coder/references/)
+      SKILL.md           ← new file (TDD workflow, references via ../java-coder/references/)
+    spring/
+      SKILL.md           ← new file (Spring Boot 4 conventions, test patterns, review checklist)
   .claude-plugin/
     plugin.json          ← unchanged (skills auto-discovered from directory structure)
 ```
 
-**Reference path resolution**: `java-reviewer` and `java-tester` reference shared files using `../java-coder/references/<file>.md`. No file copying or symlinking required. The Claude Code skill runtime resolves these as standard relative filesystem paths.
+**Reference path resolution**: All skills reference shared files using `../java-coder/references/<file>.md`. No file copying or symlinking required. The Claude Code skill runtime resolves these as standard relative filesystem paths.
 
 **Settings file**: `.claude/settings.json` does NOT need manual updates — skills are auto-discovered from the `plugins/java-coder/skills/` directory structure.
 
@@ -207,11 +211,12 @@ plugins/java-coder/
 
 ## Verification
 
-1. `java-coder` SKILL.md no longer contains checklist categories or TDD workflow content
+1. `java-coder` SKILL.md no longer contains checklist categories, TDD workflow, Java 25 feature table, or Spring Boot conventions
 2. `java-coder` SKILL.md Step 3 reads `→ Activate java-tester skill for TDD workflow`
-3. `java-coder` references no longer include `tdd-and-legacy.md`
-4. `java-reviewer` SKILL.md contains all 5 checklist categories with refactoring guidance per item
-5. `java-tester` SKILL.md contains TDD Red-Green-Refactor + coverage checklist + test patterns
-6. Each SKILL.md `description` frontmatter satisfies non-overlapping trigger conditions per the Trigger Conflict Resolution section
-7. `java-reviewer` and `java-tester` reference paths use `../java-coder/references/` prefix
-8. No content exists in only one skill that was previously required by both workflows
+3. `java-25` SKILL.md contains Java 25 feature reference, Virtual Thread safety rules, records, sealed classes, ScopedValue
+4. `spring` SKILL.md contains Spring Boot 4 conventions, REST controller pattern, ProblemDetail error handling, test patterns (@WebMvcTest, @DataJpaTest, @SpringBootTest), review checklist
+5. `java-reviewer` SKILL.md contains 4 inline checklist categories + cross-reference to `spring` skill for Spring Boot / API checklist
+6. `java-tester` SKILL.md contains TDD Red-Green-Refactor + coverage checklist + cross-reference to `spring` skill for test patterns
+7. Each SKILL.md `description` frontmatter satisfies non-overlapping trigger conditions
+8. All reference paths use `../java-coder/references/` prefix
+9. No content is duplicated across skills (each skill either owns the content or cross-references another skill)

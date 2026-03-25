@@ -2,14 +2,15 @@
 name: java-coder
 description: >
   Use when writing, designing, or refactoring Java code.
-  Trigger for .java file creation or modification, REST API design, Spring Boot configuration,
-  JPA entity modeling, or domain modeling involving Java 25, Spring Boot 4.
-  NOT for test file writing, code review, or quality audits.
+  Trigger for .java file creation or modification, REST API design,
+  JPA entity modeling, or domain modeling.
+  NOT for test file writing (java-tester), code review (java-reviewer),
+  Java 25 features (java-25), or Spring Boot patterns (spring).
 ---
 
 # Java Coder — Integrated Guide (11-Book Edition)
 
-Unified skill combining software engineering principles from 11 landmark books with Java 25 + Spring Boot 4 conventions.
+Unified skill combining software engineering principles from 11 landmark books. For Java 25 features see **java-25** skill, for Spring Boot 4 see **spring** skill.
 
 ## Integrated Principle Sources
 
@@ -229,12 +230,7 @@ synchronized void criticalSection() { ... }
 
 ## Error Handling / Logging
 
-**Errors** (RFC 9457 ProblemDetail):
-```java
-var pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Order not found");
-pd.setType(URI.create("/errors/order-not-found"));
-pd.setProperty("orderId", id);
-```
+**Errors**: → See **spring** skill for RFC 9457 ProblemDetail error handling patterns.
 
 **Logging** (`@Slf4j`, structured, masked):
 ```java

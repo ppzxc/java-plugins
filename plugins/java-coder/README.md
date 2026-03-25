@@ -1,45 +1,34 @@
 # java-coder
 
-A production-grade Java patterns reference skill for Claude Code.
+A production-grade Java patterns plugin for Claude Code containing 5 focused skills.
 
-Based on eleven canonical books:
+Based on eleven canonical books: Clean Code, SOLID, Pragmatic Programmer, Code Complete, Refactoring, Design Patterns, TDD, Legacy Code, Effective Java, DDD, Release It!
 
-- *Clean Code* (Robert C. Martin)
-- *Agile Software Development: Principles, Patterns, and Practices* (Robert C. Martin)
-- *The Pragmatic Programmer* (Hunt & Thomas)
-- *Code Complete* (Steve McConnell)
-- *Refactoring* (Martin Fowler)
-- *Design Patterns: Elements of Reusable Object-Oriented Software* (Gamma et al.)
-- *Test-Driven Development* (Kent Beck)
-- *Working Effectively with Legacy Code* (Michael Feathers)
-- *Effective Java* (Joshua Bloch)
-- *Domain-Driven Design* (Eric Evans)
-- *Release It!* (Michael Nygard)
+## Skills
 
-## Contents
-
-1. **Design** — SOLID principles, GoF patterns, DDD tactical patterns
-2. **Clean Code** — Naming, function size, null safety, error handling
-3. **Java 25 Features** — Records, sealed classes, pattern matching, virtual threads
-4. **Spring Boot 4 Conventions** — Constructor injection, ProblemDetail, transaction management
-5. **Effective Java** — Static factories, builders, immutability, Optional, enums
-6. **DDD in Practice** — Aggregate, Value Object, Domain Event, module mapping
-7. **TDD & Testing** — Red-Green-Refactor, @WebMvcTest, @DataJpaTest, Testcontainers
-8. **Stability Patterns** — Timeout, Circuit Breaker, Bulkhead, Retry, virtual thread safety
+| Skill | Trigger |
+|-------|---------|
+| **java-coder** | Writing, designing, or refactoring Java code |
+| **java-25** | Java 25 features — records, sealed classes, virtual threads, ScopedValue |
+| **spring** | Spring Boot 4 — conventions, REST patterns, test annotations, ProblemDetail |
+| **java-tester** | TDD workflow, writing tests (*Test.java, *IT.java) |
+| **java-reviewer** | Code review, quality audits, architecture compliance |
 
 ## Installation
 
 ```bash
-/plugin marketplace add ppzxc/java-skills
-/plugin install java-skills
+/plugin marketplace add ppzxc/java-plugins
+/plugin install java-plugins
 ```
 
 ## Usage
 
-Invoke as a slash command in Claude Code:
+Each skill activates automatically based on context:
 
 ```
-/java-coder
+/java-coder     # Code writing and design
+/java-25        # Java 25 feature reference
+/spring         # Spring Boot 4 conventions
+/java-tester    # TDD and testing
+/java-reviewer  # Code review
 ```
-
-Also activates automatically when writing, reviewing, or refactoring Java code.

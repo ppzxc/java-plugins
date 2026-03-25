@@ -1,6 +1,6 @@
-# java-coder
+# java-plugins
 
-A production-grade Java patterns reference skill for Claude Code.
+A production-grade Java patterns reference plugin for Claude Code.
 
 Based on eleven canonical books:
 
@@ -16,30 +16,31 @@ Based on eleven canonical books:
 - *Domain-Driven Design* (Eric Evans)
 - *Release It!* (Michael Nygard)
 
-## Contents
+## Skills
 
-1. **Design** — SOLID principles, GoF patterns, DDD tactical patterns
-2. **Clean Code** — Naming, function size, null safety, error handling
-3. **Java 25 Features** — Records, sealed classes, pattern matching, virtual threads
-4. **Spring Boot 4 Conventions** — Constructor injection, ProblemDetail, transaction management
-5. **Effective Java** — Static factories, builders, immutability, Optional, enums
-6. **DDD in Practice** — Aggregate, Value Object, Domain Event, module mapping
-7. **TDD & Testing** — Red-Green-Refactor, @WebMvcTest, @DataJpaTest, Testcontainers
-8. **Stability Patterns** — Timeout, Circuit Breaker, Bulkhead, Retry, virtual thread safety
+| Skill | Description |
+|-------|-------------|
+| **java-coder** | Code writing — SOLID, Clean Code, Effective Java, DDD, stability patterns |
+| **java-25** | Java 25 features — records, sealed classes, pattern matching, virtual threads, ScopedValue |
+| **spring** | Spring Boot 4 — conventions, REST patterns, test annotations, ProblemDetail |
+| **java-tester** | TDD workflow — Red-Green-Refactor, coverage checklist, test doubles |
+| **java-reviewer** | Code review — quality, DDD, Effective Java, stability checklists |
 
 ## Installation
 
 ```bash
-/plugin marketplace add ppzxc/java-skills
-/plugin install java-skills
+/plugin marketplace add ppzxc/java-plugins
+/plugin install java-plugins
 ```
 
 ## Usage
 
-Invoke as a slash command in Claude Code:
+Each skill activates automatically based on context. You can also invoke directly:
 
 ```
-/java-coder
+/java-coder     # Code writing and design
+/java-25        # Java 25 feature reference
+/spring         # Spring Boot 4 conventions
+/java-tester    # TDD and testing
+/java-reviewer  # Code review
 ```
-
-Also activates automatically when writing, reviewing, or refactoring Java code.

@@ -1,15 +1,16 @@
 ---
 name: java-coder
 description: >
-  Use when writing, reviewing, refactoring, or designing Java code.
-  Trigger for any .java file creation or modification, REST API design, Spring Boot configuration,
-  JPA entity modeling, test writing, or code review involving Java 25, Spring Boot 4, or
-  domain modeling patterns.
+  Use when writing, designing, or refactoring Java code.
+  Trigger for .java file creation or modification, REST API design,
+  JPA entity modeling, or domain modeling.
+  NOT for test file writing (java-tester), code review (java-reviewer),
+  Java 25 features (java-25), or Spring Boot patterns (spring).
 ---
 
 # Java Coder — Integrated Guide (11-Book Edition)
 
-Unified skill combining software engineering principles from 11 landmark books with Java 25 + Spring Boot 4 conventions.
+Unified skill combining software engineering principles from 11 landmark books. For Java 25 features see **java-25** skill, for Spring Boot 4 see **spring** skill.
 
 ## Integrated Principle Sources
 
@@ -63,21 +64,7 @@ Before writing code, think about structure and domain model.
 
 ### Step 3: Write Tests First (TDD)
 
-Red → Green → Refactor. No new code without a failing test.
-
-- **Unit tests** (70%): `@WebMvcTest`, `@DataJpaTest`, Mockito for boundaries
-- **Integration tests** (25%): `@SpringBootTest` + Testcontainers
-- **E2E** (5%): Critical flows only
-- Test names: `methodName_scenario_expectedBehavior()`
-
-**커버리지 검증** (새 기능/클래스 작성 후):
-- [ ] 새 Controller → `@WebMvcTest` 단위 테스트 + 통합 테스트 파일 존재 확인
-- [ ] 새 Service → `@ExtendWith(MockitoExtension.class)` 단위 테스트 파일 존재 확인
-- [ ] 새 Repository (커스텀 쿼리) → `@DataJpaTest` 또는 통합 테스트 존재 확인
-- [ ] 테스트 네이밍: `methodName_scenario_expectedBehavior()` 패턴 준수
-- [ ] 최소: happy path + 주요 에러 케이스 1개 이상
-
-→ See `references/tdd-and-legacy.md` for test strategy and legacy code techniques
+→ Activate **java-tester** skill for the full TDD workflow, coverage checklist, and test patterns.
 
 ### Step 4: Refactor (RF, LEG)
 
@@ -104,7 +91,7 @@ After tests are green, improve structure:
 2. **Circuit Breaker**: 불안정한 의존성(이메일, 푸시, 외부 API, 웹훅)에 Resilience4j `@CircuitBreaker` 적용 확인.
 3. **Fallback**: Redis 장애 시 degraded mode 가능 여부 검토 (특히 인증 경로).
 4. **Retry**: 멱등 연산(GET, PUT)만. POST는 멱등키 없으면 retry 금지.
-5. **Virtual Thread 안전**: `synchronized` → `ReentrantLock`, `ThreadLocal` → `ScopedValue`
+5. **Virtual Thread 안전**: `synchronized` → `ReentrantLock`, `ThreadLocal` → `ScopedValue` → See **java-25** skill
 
 → See `references/release-it-stability.md` for stability patterns and anti-patterns
 
@@ -133,32 +120,13 @@ After tests are green, improve structure:
 
 ## Java 25 Feature Usage
 
-Use modern features actively. Full reference → `references/java25-features.md`
-
-| Feature | When to Use |
-|---------|------------|
-| `var` | Local variables for type inference |
-| Records | DTOs, Value Objects, immutable data |
-| Sealed classes | Algebraic types, closed hierarchies (e.g., domain events) |
-| Pattern matching (`instanceof`, `switch`) | Replace `instanceof` casts, eliminate type-switching |
-| Virtual Threads | All I/O-bound work (Spring Boot 4 default) |
-| `ScopedValue` | Replace `ThreadLocal` in Virtual Thread contexts |
-| Text blocks | Multi-line SQL, JSON templates |
-| `SequencedCollection` | When insertion order + first/last access matters |
+→ See **java-25** skill for the full Java 25 feature reference, Virtual Thread safety rules, and usage conventions.
 
 ---
 
 ## Spring Boot 4 Conventions
 
-Full reference → `references/spring-boot4-conventions.md`
-
-- **Constructor injection only** — no `@Autowired` on fields
-- `@RestController` + `@RequestMapping` on class, method-level `@GetMapping` etc.
-- `@Transactional` on Service layer, never on Repository interface
-- `ProblemDetail` (RFC 9457) for all error responses — `application/problem+json`
-- Implement API versioning (header, URI, or content negotiation) — decide early and standardize
-- `201 Created` + `Location` header on resource creation
-- Health checks via Spring Actuator (`/actuator/health`)
+→ See **spring** skill for Spring Boot 4 conventions, test patterns, and review checklist.
 
 ---
 
@@ -260,76 +228,15 @@ synchronized void criticalSection() { ... }
 
 ---
 
-## Test Conventions
-
-```
-src/test/java          — Unit tests (@WebMvcTest, @DataJpaTest) — no Docker
-src/integrationTest/   — Integration tests (@SpringBootTest + Testcontainers)
-```
-
-Test naming: `methodName_scenario_expectedBehavior`
-
-```java
-@Test
-void findById_whenUnauthorized_throwsAccessDeniedException() { ... }
-```
-
----
-
 ## Error Handling / Logging
 
-**Errors** (RFC 9457 ProblemDetail):
-```java
-var pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Order not found");
-pd.setType(URI.create("/errors/order-not-found"));
-pd.setProperty("orderId", id);
-```
+**Errors**: → See **spring** skill for RFC 9457 ProblemDetail error handling patterns.
 
 **Logging** (`@Slf4j`, structured, masked):
 ```java
 log.info("Order placed: orderId={}, tenantId={}", orderId, tenantId);
 // Never log: passwords, tokens, card numbers, PII
 ```
-
----
-
-## Java-Specific Checklist
-
-Before committing any `.java` file:
-
-### Code Quality
-- [ ] No `synchronized` → `ReentrantLock` instead
-- [ ] No `ThreadLocal` → `ScopedValue` instead
-- [ ] No null returned from methods — `Optional` or empty collections
-- [ ] No inner class/record — each DTO in its own file
-- [ ] Records used for DTOs and Value Objects
-
-### DDD / Architecture
-- [ ] Correct layer placement (domain / application / infrastructure / presentation)
-- [ ] No upward dependency violations (e.g., application → infrastructure)
-- [ ] Aggregate accessed through root only
-- [ ] Domain objects carry behavior (no Anemic Domain Model)
-
-### Effective Java
-- [ ] Static factory or Builder used where appropriate (≥4 params)
-- [ ] Value Objects are immutable
-- [ ] `Optional` used only as return type
-- [ ] `enum` used instead of int constants
-
-### Stability / Production Readiness (외부 호출 코드 포함 시 필수)
-- [ ] **모든** 외부 호출(HTTP/SMTP/Redis/외부 DB)에 timeout 설정 확인
-- [ ] 불안정 의존성에 Circuit Breaker 적용 (`@CircuitBreaker` 또는 프로그래밍 방식)
-- [ ] Circuit Breaker fallback 메서드 정의 (degraded mode)
-- [ ] Retry는 멱등 연산에만 적용 + exponential backoff
-- [ ] Redis/캐시 장애 시 인증 경로 fallback 존재
-- [ ] Input validation at system boundary (controller/filter)
-
-### Spring Boot / API
-- [ ] Constructor injection only
-- [ ] `@Transactional` on Service, not Repository
-- [ ] Error response uses `ProblemDetail` + `application/problem+json`
-- [ ] API versioning applied consistently
-- [ ] `201 Created` + `Location` on resource creation
 
 ---
 
@@ -340,9 +247,8 @@ Before committing any `.java` file:
 | `references/clean-and-pragmatic.md` | Naming, function size, comments, error handling (CC + PP + CodeC) |
 | `references/design-and-solid.md` | SOLID deep-dive, GoF patterns, anti-patterns |
 | `references/refactoring-catalog.md` | Specific refactoring technique lookup (RF) |
-| `references/tdd-and-legacy.md` | Test strategy, legacy code seams, test doubles |
-| `references/java25-features.md` | Sealed classes, records, pattern matching, Virtual Threads |
-| `references/spring-boot4-conventions.md` | Spring annotations, security, actuator, transaction config |
+| **java-25** skill | Java 25 features — records, sealed classes, virtual threads, ScopedValue |
+| **spring** skill | Spring Boot 4 conventions, test patterns, review checklist |
 | `references/effective-java.md` | Static factory, Builder, generics, enum, Optional, concurrency |
 | `references/domain-driven-design.md` | Aggregate, Value Object, Domain Event, Context Mapping, module mapping |
 | `references/release-it-stability.md` | Circuit Breaker, Bulkhead, Timeout, Retry, anti-patterns |

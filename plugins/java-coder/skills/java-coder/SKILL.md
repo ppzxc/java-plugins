@@ -90,7 +90,7 @@ After tests are green, improve structure:
 2. **Circuit Breaker**: 불안정한 의존성(이메일, 푸시, 외부 API, 웹훅)에 Resilience4j `@CircuitBreaker` 적용 확인.
 3. **Fallback**: Redis 장애 시 degraded mode 가능 여부 검토 (특히 인증 경로).
 4. **Retry**: 멱등 연산(GET, PUT)만. POST는 멱등키 없으면 retry 금지.
-5. **Virtual Thread 안전**: `synchronized` → `ReentrantLock`, `ThreadLocal` → `ScopedValue`
+5. **Virtual Thread 안전**: `synchronized` → `ReentrantLock`, `ThreadLocal` → `ScopedValue` → See **java-25** skill
 
 → See `references/release-it-stability.md` for stability patterns and anti-patterns
 
@@ -119,32 +119,13 @@ After tests are green, improve structure:
 
 ## Java 25 Feature Usage
 
-Use modern features actively. Full reference → `references/java25-features.md`
-
-| Feature | When to Use |
-|---------|------------|
-| `var` | Local variables for type inference |
-| Records | DTOs, Value Objects, immutable data |
-| Sealed classes | Algebraic types, closed hierarchies (e.g., domain events) |
-| Pattern matching (`instanceof`, `switch`) | Replace `instanceof` casts, eliminate type-switching |
-| Virtual Threads | All I/O-bound work (Spring Boot 4 default) |
-| `ScopedValue` | Replace `ThreadLocal` in Virtual Thread contexts |
-| Text blocks | Multi-line SQL, JSON templates |
-| `SequencedCollection` | When insertion order + first/last access matters |
+→ See **java-25** skill for the full Java 25 feature reference, Virtual Thread safety rules, and usage conventions.
 
 ---
 
 ## Spring Boot 4 Conventions
 
-Full reference → `references/spring-boot4-conventions.md`
-
-- **Constructor injection only** — no `@Autowired` on fields
-- `@RestController` + `@RequestMapping` on class, method-level `@GetMapping` etc.
-- `@Transactional` on Service layer, never on Repository interface
-- `ProblemDetail` (RFC 9457) for all error responses — `application/problem+json`
-- Implement API versioning (header, URI, or content negotiation) — decide early and standardize
-- `201 Created` + `Location` header on resource creation
-- Health checks via Spring Actuator (`/actuator/health`)
+→ See **spring** skill for Spring Boot 4 conventions, test patterns, and review checklist.
 
 ---
 
@@ -270,8 +251,8 @@ log.info("Order placed: orderId={}, tenantId={}", orderId, tenantId);
 | `references/clean-and-pragmatic.md` | Naming, function size, comments, error handling (CC + PP + CodeC) |
 | `references/design-and-solid.md` | SOLID deep-dive, GoF patterns, anti-patterns |
 | `references/refactoring-catalog.md` | Specific refactoring technique lookup (RF) |
-| `references/java25-features.md` | Sealed classes, records, pattern matching, Virtual Threads |
-| `references/spring-boot4-conventions.md` | Spring annotations, security, actuator, transaction config |
+| **java-25** skill | Java 25 features — records, sealed classes, virtual threads, ScopedValue |
+| **spring** skill | Spring Boot 4 conventions, test patterns, review checklist |
 | `references/effective-java.md` | Static factory, Builder, generics, enum, Optional, concurrency |
 | `references/domain-driven-design.md` | Aggregate, Value Object, Domain Event, Context Mapping, module mapping |
 | `references/release-it-stability.md` | Circuit Breaker, Bulkhead, Timeout, Retry, anti-patterns |

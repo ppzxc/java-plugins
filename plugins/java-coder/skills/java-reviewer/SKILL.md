@@ -93,18 +93,7 @@ Review Java code for quality, architecture compliance, and production readiness.
 
 ## Spring Boot / API
 
-### Checklist
-- [ ] Constructor injection only — no `@Autowired` on fields
-- [ ] `@Transactional` on Service layer, not Repository interface
-- [ ] Error responses use `ProblemDetail` + `application/problem+json` (RFC 9457)
-- [ ] API versioning applied consistently across all endpoints
-- [ ] `201 Created` + `Location` header on resource creation
-
-**When found:** See `../java-coder/references/spring-boot4-conventions.md`
-
-**Refactoring techniques:**
-- Field injection → Extract Constructor (move `@Autowired` fields to constructor params)
-- Non-standard error body → Replace with `ProblemDetail.forStatusAndDetail(...)`
+→ See **spring** skill for Spring Boot / API review checklist and refactoring techniques.
 
 ---
 
@@ -117,5 +106,5 @@ Review Java code for quality, architecture compliance, and production readiness.
 | `../java-coder/references/refactoring-catalog.md` | General refactoring technique lookup — consult when section guidance doesn't name the specific refactoring needed |
 | `../java-coder/references/effective-java.md` | EJ idiom violations |
 | `../java-coder/references/domain-driven-design.md` | DDD and architecture issues |
-| `../java-coder/references/spring-boot4-conventions.md` | Spring annotation and API issues |
+| **spring** skill | Spring annotation and API issues |
 | `../java-coder/references/release-it-stability.md` | Stability and Virtual Thread issues |

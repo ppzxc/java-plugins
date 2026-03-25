@@ -67,100 +67,9 @@ void processPayment_whenGatewayTimeout_throwsPaymentException() { ... }
 
 ---
 
-## @WebMvcTest Pattern (Controller Slice)
+## Spring Test Patterns
 
-```java
-@WebMvcTest(OrderController.class)
-class OrderControllerTest {
-
-    @Autowired MockMvc mockMvc;
-    @MockBean OrderService orderService;  // stub the service layer only
-
-    @Test
-    void getOrder_whenExists_returns200() throws Exception {
-        given(orderService.findById(any())).willReturn(Optional.of(order));
-
-        mockMvc.perform(get("/api/orders/{id}", orderId))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(orderId.toString()));
-    }
-
-    @Test
-    void getOrder_whenNotFound_returns404WithProblemDetail() throws Exception {
-        given(orderService.findById(any())).willReturn(Optional.empty());
-
-        mockMvc.perform(get("/api/orders/{id}", orderId))
-            .andExpect(status().isNotFound())
-            .andExpect(content().contentType("application/problem+json"));
-    }
-}
-```
-
-→ See `../java-coder/references/spring-boot4-conventions.md` for Spring test annotation reference
-
----
-
-## @DataJpaTest Pattern (Repository Slice)
-
-```java
-@DataJpaTest
-class OrderRepositoryTest {
-
-    @Autowired OrderRepository repository;
-
-    @Test
-    void findByCustomerId_whenOrdersExist_returnsAll() {
-        var customerId = CustomerId.of(UUID.randomUUID());
-        repository.save(OrderFixture.create(customerId));
-
-        var result = repository.findByCustomerId(customerId);
-
-        assertThat(result).hasSize(1);
-    }
-
-    @Test
-    void findByCustomerId_whenNoOrders_returnsEmpty() {
-        var result = repository.findByCustomerId(CustomerId.of(UUID.randomUUID()));
-
-        assertThat(result).isEmpty();
-    }
-}
-```
-
----
-
-## @SpringBootTest Pattern (Integration)
-
-```java
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
-class OrderIntegrationTest {
-
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
-
-    @DynamicPropertySource
-    static void configure(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
-
-    @Autowired TestRestClient restClient;
-
-    @Test
-    void createOrder_fullFlow_returns201WithLocation() {
-        var response = restClient.post()
-            .uri("/api/orders")
-            .body(request)
-            .retrieve()
-            .toBodilessEntity();
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getHeaders().getLocation()).isNotNull();
-    }
-}
-```
+→ See **spring** skill for `@WebMvcTest`, `@DataJpaTest`, and `@SpringBootTest` patterns.
 
 ---
 
@@ -205,4 +114,4 @@ When adding tests to untested production code:
 | File | When to Open |
 |------|-------------|
 | `../java-coder/references/tdd-and-legacy.md` | TDD deep-dive, legacy code seams, test doubles |
-| `../java-coder/references/spring-boot4-conventions.md` | Spring test annotations, slice test configuration |
+| **spring** skill | Spring test annotations, @WebMvcTest, @DataJpaTest, @SpringBootTest patterns |

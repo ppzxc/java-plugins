@@ -4,6 +4,7 @@ description: >
   Use when writing, testing, or reviewing Spring Boot 4 code — controllers, services, repositories,
   security configuration, Spring test annotations (@WebMvcTest, @DataJpaTest, @SpringBootTest),
   ProblemDetail error handling, API versioning, or any Spring Framework 7 / Jakarta EE 11 patterns.
+user_invocable: true
 ---
 
 # Spring Boot 4
@@ -20,7 +21,7 @@ Spring Boot 4 (Spring Framework 7, Jakarta EE 11) conventions for writing, testi
 - API versioning via header/URI/content negotiation — decide early and standardize
 - Health checks via Spring Actuator (`/actuator/health`)
 
-Full reference → `../java-coder/references/spring-boot4-conventions.md`
+Full reference → `references/spring-boot4-conventions.md`
 
 ---
 
@@ -193,4 +194,4 @@ class OrderIntegrationTest {
 
 | File | When to Open |
 |------|-------------|
-| `../java-coder/references/spring-boot4-conventions.md` | Full Spring Boot 4 conventions — project structure, null safety, data access, security, observability, migration notes |
+| `references/spring-boot4-conventions.md` | Full Spring Boot 4 conventions — project structure, null safety, data access, security, observability, migration notes |

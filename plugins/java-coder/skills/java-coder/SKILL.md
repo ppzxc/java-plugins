@@ -6,6 +6,7 @@ description: >
   JPA entity modeling, or domain modeling.
   NOT for test file writing (java-tester), code review (java-reviewer),
   Java 25 features (java-25), or Spring Boot patterns (spring).
+user_invocable: true
 ---
 
 # Java Coder — Integrated Guide (11-Book Edition)

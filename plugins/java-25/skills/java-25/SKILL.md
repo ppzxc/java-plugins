@@ -5,6 +5,7 @@ description: >
   pattern matching (instanceof/switch), virtual threads, ScopedValue, structured concurrency,
   stable values, or other Java 25+ language and API features.
   Also use when checking Virtual Thread safety (synchronized blocks, ThreadLocal usage).
+user_invocable: true
 ---
 
 # Java 25
@@ -26,7 +27,7 @@ Java 25 (LTS, September 2025) feature guide with usage conventions and best prac
 | Structured Concurrency | Coordinate multiple concurrent tasks as a single logical unit |
 | Stable Values | Lazy initialization replacing double-checked locking |
 
-Full reference → `../java-coder/references/java25-features.md`
+Full reference → `references/java25-features.md`
 
 ---
 
@@ -114,4 +115,4 @@ ScopedValue.runWhere(RequestContext.currentUser(), authenticatedUserId, () -> {
 
 | File | When to Open |
 |------|-------------|
-| `../java-coder/references/java25-features.md` | Complete Java 25 reference — all features with examples |
+| `references/java25-features.md` | Complete Java 25 reference — all features with examples |

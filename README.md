@@ -1,46 +1,50 @@
 # java-plugins
 
-A production-grade Java patterns reference plugin for Claude Code.
+A production-grade Java reference plugin for Claude Code. AI-optimized rules extracted from 10 canonical books + JDK 25 + Spring Boot 4 specifications.
 
-Based on eleven canonical books:
+## Reference Books
 
-- *Clean Code* (Robert C. Martin)
-- *Agile Software Development: Principles, Patterns, and Practices* (Robert C. Martin)
-- *The Pragmatic Programmer* (Hunt & Thomas)
-- *Code Complete* (Steve McConnell)
-- *Refactoring* (Martin Fowler)
-- *Design Patterns: Elements of Reusable Object-Oriented Software* (Gamma et al.)
-- *Test-Driven Development* (Kent Beck)
-- *Working Effectively with Legacy Code* (Michael Feathers)
+**Tier 1** (highest confidence rules):
 - *Effective Java* (Joshua Bloch)
-- *Domain-Driven Design* (Eric Evans)
+- *Refactoring* (Martin Fowler)
+- *Design Patterns* / GoF (Gamma et al.)
+- *Java Concurrency in Practice* (Brian Goetz)
+- *Modern Java in Action* (Urma et al.)
+
+**Tier 2**:
+- *Clean Code* (Robert C. Martin)
+- *Test-Driven Development* (Kent Beck)
+- *Unit Testing Principles, Practices, and Patterns* (Vladimir Khorikov)
+- *Clean Architecture* (Robert C. Martin)
 - *Release It!* (Michael Nygard)
+
+**Specifications**:
+- JDK 25 LTS
+- Spring Boot 4 / Spring Framework 7 / Jakarta EE 11
 
 ## Skills
 
 | Skill | Description |
 |-------|-------------|
-| **java-coder** | Code writing — SOLID, Clean Code, Effective Java, DDD, stability patterns |
-| **java-25** | Java 25 features — records, sealed classes, pattern matching, virtual threads, ScopedValue |
-| **spring** | Spring Boot 4 — conventions, REST patterns, test annotations, ProblemDetail |
-| **java-tester** | TDD workflow — Red-Green-Refactor, coverage checklist, test doubles |
-| **java-reviewer** | Code review — quality, DDD, Effective Java, stability checklists |
+| `java:coder` | Java code writing — decision tree format, JDK 25 integration, DDD essentials |
+| `java:reviewer` | Code review — concurrency safety, null safety, architecture, stability checklists |
+| `java:tester` | TDD workflow — Red-Green-Refactor, Mock strategy, legacy code testing |
+| `java:spring` | Spring Boot 4 — REST patterns, ProblemDetail, test annotations, observability |
 
 ## Installation
 
 ```bash
 /plugin marketplace add ppzxc/java-plugins
-/plugin install java-plugins
+/plugin install java
 ```
 
 ## Usage
 
-Each skill activates automatically based on context. You can also invoke directly:
+Skills activate automatically based on context. You can also invoke directly:
 
 ```
-/java-coder     # Code writing and design
-/java-25        # Java 25 feature reference
-/spring         # Spring Boot 4 conventions
-/java-tester    # TDD and testing
-/java-reviewer  # Code review
+/java:coder     # Java code writing and design
+/java:reviewer  # Code review and quality audit
+/java:tester    # TDD and testing
+/java:spring    # Spring Boot 4 conventions
 ```

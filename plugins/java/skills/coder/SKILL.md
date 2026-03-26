@@ -1,255 +1,154 @@
 ---
 name: coder
 description: >
-  Use when writing, designing, or refactoring Java code.
-  Trigger for .java file creation or modification, REST API design,
-  JPA entity modeling, or domain modeling.
-  NOT for test file writing (java:tester), code review (java:reviewer),
-  Java 25 features (java:jdk25), or Spring Boot patterns (java:spring).
+  Use when writing, designing, or refactoring Java code. Trigger for .java file
+  creation or modification, domain modeling, concurrency code, or API design.
+  NOT for test file writing (java:tester), code review (java:reviewer), or
+  Spring Boot patterns (java:spring).
 user_invocable: true
 ---
 
-# Java Coder — Integrated Guide (11-Book Edition)
+# java:coder
 
-Unified skill combining software engineering principles from 11 landmark books. For Java 25 features see **java:jdk25** skill, for Spring Boot 4 see **java:spring** skill.
+## Trigger
+- `.java` 파일 생성 또는 수정
+- 도메인 모델링 (Entity, Value Object, Aggregate 설계)
+- 동시성 코드 작성
+- API 설계 (Spring Controller 제외 → `java:spring`)
+- 리팩토링 작업
 
-## Integrated Principle Sources
+## Decision Tree
 
-| Abbr | Book | Author | Core Area |
-|------|------|--------|-----------|
-| CC | Clean Code | Robert C. Martin | Code quality, naming, function design |
-| SOLID | Agile Software Development | Robert C. Martin | 5 OO design principles |
-| PP | The Pragmatic Programmer | Hunt & Thomas | Development philosophy, practical habits |
-| CodeC | Code Complete | Steve McConnell | Software construction |
-| RF | Refactoring | Martin Fowler | Code structure improvement |
-| DP | Design Patterns (GoF) | Gamma et al. | Reusable design patterns |
-| TDD | Test-Driven Development | Kent Beck | Test-driven development |
-| LEG | Working Effectively with Legacy Code | Michael Feathers | Legacy code strategies |
-| EJ | Effective Java | Joshua Bloch | Java idioms and best practices |
-| DDD | Domain-Driven Design | Eric Evans | Strategic/tactical domain modeling |
-| RI | Release It! | Michael Nygard | Production stability patterns |
+### 새 클래스를 만들어야 한다면?
 
-## Core Principles
-
-1. **Readability first** (CC): Code is read far more often than it is written
-2. **Consistency** (PP): Apply the same style across the entire project
-3. **Embrace modern Java** (EJ): Actively use Java 25 features and proven idioms
-4. **Follow Spring Boot 4 idioms**: Adopt patterns built on Spring Framework 7
-5. **Model the domain explicitly** (DDD): Code reflects the Ubiquitous Language; domain objects carry behavior
-6. **Design for failure** (RI): Every external call can fail; timeouts, circuit breakers, and bulkheads are not optional
-7. **Prefer proven idioms** (EJ): Static factories, builders, immutability, proper equals/hashCode
-
-## Code Writing Workflow
-
-### Step 1: Think About Design (SOLID, DP, DDD)
-
-Before writing code, think about structure and domain model.
-
-- **Bounded Context**: Which layer/module owns this concept? (domain / application / infrastructure / presentation)
-- **Aggregate boundary**: What is the transaction boundary? Access through the Aggregate Root.
-- **SOLID**: Apply SRP, OCP, LSP, ISP, DIP — especially DIP via constructor injection
-- **Pattern**: Apply GoF patterns deliberately, not mechanically
-
-→ See `references/design-and-solid.md` for SOLID/GoF details
-→ See `references/domain-driven-design.md` for DDD patterns and module mapping
-
-### Step 2: Write Clean Code (CC, PP, CodeC, EJ)
-
-- **Naming**: Reveal intent. Use domain terms from Ubiquitous Language.
-- **Functions**: Do one thing. ≤15 lines. Uniform abstraction level.
-- **EJ idioms**: Static factories over constructors, Builder for ≥4 params, immutable Value Objects
-- **Null safety**: Return `Optional` or empty collections, never null. No null parameters.
-
-→ See `references/clean-and-pragmatic.md` for detailed naming/function/error handling rules
-→ See `references/effective-java.md` for EJ idioms (static factory, Builder, enum, generics)
-
-### Step 3: Write Tests First (TDD)
-
-→ Activate **java:tester** skill for the full TDD workflow, coverage checklist, and test patterns.
-
-### Step 4: Refactor (RF, LEG)
-
-After tests are green, improve structure:
-
-- **Extract Method/Class** for duplicated logic
-- **Replace conditional with polymorphism** for type-switching
-- **Introduce Parameter Object** when ≥3 related params
-- Leave code cleaner than you found it (Boy Scout Rule)
-
-→ See `references/refactoring-catalog.md` for refactoring catalog
-
-### Step 5: Harden for Production (RI)
-
-**트리거**: 아래 키워드가 코드에 포함되면 이 단계는 **필수**:
-- `RestClient`, `WebClient`, `@HttpExchange`, `RestTemplate` → Timeout + Circuit Breaker
-- `JavaMailSender`, `mailSender.send` → Timeout + Circuit Breaker
-- `RedisTemplate`, `StringRedisTemplate`, `ValueOperations` → Timeout + Fallback
-- `JdbcTemplate`, `EntityManager`, `@Query` (외부 DB) → Timeout
-- `HttpURLConnection`, `URL.openStream` → Timeout + Circuit Breaker + Retry
-
-**필수 체크**:
-1. **Timeout**: `connectTimeout` + `readTimeout` 명시적 설정 확인. 설정 없으면 작성 중단하고 추가.
-2. **Circuit Breaker**: 불안정한 의존성(이메일, 푸시, 외부 API, 웹훅)에 Resilience4j `@CircuitBreaker` 적용 확인.
-3. **Fallback**: Redis 장애 시 degraded mode 가능 여부 검토 (특히 인증 경로).
-4. **Retry**: 멱등 연산(GET, PUT)만. POST는 멱등키 없으면 retry 금지.
-5. **Virtual Thread 안전**: `synchronized` → `ReentrantLock`, `ThreadLocal` → `ScopedValue` → See **java:jdk25** skill
-
-→ See `references/release-it-stability.md` for stability patterns and anti-patterns
-
----
-
-## Formatting & Naming
-
-**Style**: Google Java Style, max 120 chars/line, 2-space indent, `google-java-format`
-
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Class | PascalCase | `OrderService` |
-| Method/Variable | camelCase | `findByCustomerId` |
-| Constant | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
-| Redis key | snake_case + colon separator → constants class | `session:user:{userId}` |
-| DB column | snake_case | `customer_id` |
-| Package | lowercase, domain-aligned | `com.example.order` |
-
-**DTO Rules**:
-- Always use `record`
-- Request DTOs: Bean Validation annotations required
-- Never expose `@Entity` in controller — convert in Service layer
-- **No inner classes/records** — every DTO in its own file
-
----
-
-## Java 25 Feature Usage
-
-→ See **java:jdk25** skill for the full Java 25 feature reference, Virtual Thread safety rules, and usage conventions.
-
----
-
-## Spring Boot 4 Conventions
-
-→ See **java:spring** skill for Spring Boot 4 conventions, test patterns, and review checklist.
-
----
-
-## Effective Java Essentials
-
-Full reference → `references/effective-java.md`
-
-**Object Creation**
-```java
-// Prefer static factory over constructor
-public static OrderId of(UUID value) { return new OrderId(value); }
-
-// Builder for ≥4 params or optional fields
-var cmd = CreateOrderCommand.builder()
-    .customerId(customerId)
-    .itemCode(itemCode)
-    .quantity(qty)
-    .build();
+```
+어떤 목적의 클래스인가?
+│
+├─ 데이터 운반 (DTO, Request, Response, Event)
+│   → record 사용
+│   → 검증 로직은 compact constructor에
+│
+├─ 도메인 Entity (ID로 구분되는 비즈니스 객체)
+│   → class 사용 (record 불가 — 상태 변경 필요)
+│   → ID 기반 equals/hashCode
+│   → 도메인 로직을 메서드로
+│
+├─ 도메인 Value Object (값 자체가 동일성)
+│   → record 사용 (Money, Address, Coordinate 등)
+│   → 불변 유지, 변경 시 새 인스턴스 반환
+│
+├─ 서비스 (비즈니스 로직 조율)
+│   → class, 생성자 주입
+│   → @Transactional 고려 (Spring → java:spring)
+│
+└─ 유틸리티 (stateless 헬퍼)
+    → final class + private 생성자 + static 메서드
 ```
 
-**Immutability**
-```java
-// Value Objects should be immutable records
-public record Money(BigDecimal amount, Currency currency) {
-  public Money add(Money other) { return new Money(amount.add(other.amount), currency); }
-}
+### 생성자 vs static factory vs Builder?
+
+```
+매개변수가 몇 개인가?
+│
+├─ 1~2개이고 타입이 명확
+│   → 생성자 또는 static factory (of(a, b))
+│
+├─ 3개이고 의미가 명확
+│   → static factory 권장 (Money.of(amount, currency))
+│
+└─ 4개 이상 또는 선택적 매개변수 있음
+    → Builder 패턴 필수
 ```
 
-**Optional** — return type only, never as field/parameter
-```java
-Optional<User> findByEmail(String email);  // OK
-// NOT: Optional<String> field;            // Bad
-// NOT: void method(Optional<X> param);    // Bad
+### 동시성 코드를 작성한다면?
+
+```
+작업 유형은?
+│
+├─ I/O 바운드 (HTTP 호출, DB 쿼리, 파일 I/O)
+│   → Virtual Thread: Executors.newVirtualThreadPerTaskExecutor()
+│   → synchronized 금지 → ReentrantLock
+│   → ThreadLocal 금지 → ScopedValue
+│
+├─ CPU 바운드 (계산, 이미지 처리)
+│   → Platform Thread Pool
+│   → Executors.newFixedThreadPool(availableProcessors())
+│
+└─ 여러 작업을 함께 관리
+    → StructuredTaskScope 사용
+    → ShutdownOnFailure: 모두 성공해야 할 때
+    → ShutdownOnSuccess: 하나만 성공하면 될 때
 ```
 
-**Enum over int constants**
-```java
-public enum OrderStatus { PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED }
+### null 처리는?
+
+```
+반환값이 없을 수 있다면?
+│
+├─ 단일 값 → Optional<T> 반환
+├─ 컬렉션 → 빈 컬렉션 반환 (List.of())
+└─ 없으면 예외가 맞는 상황 → throw NotFoundException
 ```
 
----
+### 외부 서비스를 호출한다면?
 
-## DDD in Practice
+```
+모든 외부 호출에 필수 체크:
+├─ Timeout 설정
+├─ Circuit Breaker 적용
+├─ Fallback 구현
+└─ Retry 정책 (멱등성 확인 후)
 
-Full reference → `references/domain-driven-design.md`
-
-### Module Mapping
-
-| DDD Layer | Module | Package Pattern |
-|-----------|--------|-----------------|
-| Domain Model (Entity, VO, Aggregate) | `<app>-domain` | `com.example.<context>` |
-| Application Service | `<app>-application` | `com.example.<context>` |
-| Repository Interface | `<app>-domain` | `com.example.<context>` |
-| Repository Implementation | `<app>-infrastructure` | `com.example.infra.<context>` |
-| REST Controller | `<app>-api` | `com.example.<context>` |
-
-### Aggregate Rules
-```java
-// Access child entities through Aggregate Root
-order.addLineItem(productId, quantity, unitPrice);
-
-// Reference other aggregates by ID only
-public record OrderRef(UUID orderId) {}  // NOT the full Order object
+이 중 하나라도 없으면 추가한다.
 ```
 
-### Domain Events
-```java
-// Publish events from Aggregate Root, handle in Application Service
-public class Order extends AbstractAggregateRoot<Order> {
-  public void complete() {
-    this.status = OrderStatus.DELIVERED;
-    registerEvent(new OrderCompletedEvent(this.id, customerId, Instant.now()));
-  }
-}
+### 어떤 패턴을 써야 할지 모르겠다면?
+
+```
+상황에 따라:
+│
+├─ 알고리즘/동작을 런타임에 교체
+│   → Strategy 패턴
+│
+├─ 조건에 따라 다른 구현체 생성
+│   → Factory Method 패턴
+│
+├─ 상태 변경을 여러 객체에 알려야
+│   → Observer (Spring: ApplicationEventPublisher)
+│
+├─ 복잡한 하위 시스템을 단순화
+│   → Facade 패턴
+│
+└─ 타입 계층이 닫혀 있고 exhaustive 처리 필요
+    → Sealed class + pattern matching switch
 ```
 
----
+## Quick Rules
 
-## Stability Patterns (Release It!)
+DO:
+- DTO → `record`
+- 동시성 락 → `ReentrantLock` (synchronized 금지)
+- 스레드 로컬 → `ScopedValue` (ThreadLocal 금지)
+- null 반환 금지 → `Optional` 또는 빈 컬렉션
+- 의존성은 안쪽 방향 (Controller → Service → Domain)
+- 외부 호출 → Timeout + Circuit Breaker + Fallback 필수
 
-Full reference → `references/release-it-stability.md`
+DON'T:
+- Domain Entity에 비즈니스 무관한 프레임워크 코드
+- 같은 타입 조건 if/switch를 여러 곳에 반복
+- 메서드 30줄 초과
+- 외부 호출에 Timeout 없음
+- null 반환
 
-| Pattern | Application |
-|---------|-------------|
-| Timeout | All cache/DB/HTTP calls — explicit `connectTimeout` + `readTimeout` |
-| Circuit Breaker | Push notification, Email, external webhook endpoints |
-| Bulkhead | Separate Virtual Thread executor for CPU-bound tasks |
-| Fail Fast | Validate tenant/context at filter/controller boundary |
-| Retry + Backoff | Idempotent operations only (GET, PUT); never on POST without idempotency key |
+## Delegation
 
-**Virtual Thread Safety** (non-negotiable)
-```java
-// Virtual Thread safe
-private final ReentrantLock lock = new ReentrantLock();
+| 상황 | 위임 스킬 |
+|------|----------|
+| 테스트 코드 작성 | `java:tester` |
+| 코드 리뷰 요청 | `java:reviewer` |
+| Spring Controller/Service/Repository/Test | `java:spring` |
 
-// Pins Virtual Thread carrier thread — forbidden
-synchronized void criticalSection() { ... }
-```
-
----
-
-## Error Handling / Logging
-
-**Errors**: → See **java:spring** skill for RFC 9457 ProblemDetail error handling patterns.
-
-**Logging** (`@Slf4j`, structured, masked):
-```java
-log.info("Order placed: orderId={}, tenantId={}", orderId, tenantId);
-// Never log: passwords, tokens, card numbers, PII
-```
-
----
-
-## Reference File Guide
-
-| File | When to Open |
-|------|-------------|
-| `references/clean-and-pragmatic.md` | Naming, function size, comments, error handling (CC + PP + CodeC) |
-| `references/design-and-solid.md` | SOLID deep-dive, GoF patterns, anti-patterns |
-| `references/refactoring-catalog.md` | Specific refactoring technique lookup (RF) |
-| **java:jdk25** skill | Java 25 features — records, sealed classes, virtual threads, ScopedValue |
-| **java:spring** skill | Spring Boot 4 conventions, test patterns, review checklist |
-| `references/effective-java.md` | Static factory, Builder, generics, enum, Optional, concurrency |
-| `references/domain-driven-design.md` | Aggregate, Value Object, Domain Event, Context Mapping, module mapping |
-| `references/release-it-stability.md` | Circuit Breaker, Bulkhead, Timeout, Retry, anti-patterns |
+## References
+- `references/coding-rules.md` — 객체 생성, 동시성, 예외, 아키텍처, 안정성, 패턴
+- `references/jdk25-rules.md` — JDK 25 기능 (record, sealed, pattern matching, virtual thread 등)
+- `references/ddd-essentials.md` — DDD 핵심 (Entity, Value Object, Aggregate, Repository)

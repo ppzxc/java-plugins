@@ -1,111 +1,127 @@
 ---
 name: reviewer
 description: >
-  Use when reviewing Java code, auditing code quality, or checking
-  architecture compliance. Trigger on explicit review requests, PR review
-  commands (/review, "review this code"), or multi-file quality audits.
-  "PR review" means any code diff or multi-file review, not GitHub-specific tools.
-  NOT for generating new code or writing tests.
+  Use when reviewing Java code, auditing code quality, or checking architecture
+  compliance. Trigger on explicit review requests, PR review commands (/review,
+  "review this code"), or multi-file quality audits. NOT for generating new code
+  or writing tests.
 user_invocable: true
 ---
 
-# Java Reviewer
+# java:reviewer
 
-Review Java code for quality, architecture compliance, and production readiness.
+## Trigger
+- 명시적 리뷰 요청 ("리뷰해줘", "review this", `/review`)
+- PR 코드 리뷰
+- 아키텍처 준수 감사
+- 코드 품질 점검
 
-## Review Workflow
+## Decision Tree
 
-1. **Scan** — Read the full diff or file set before commenting
-2. **Categorize** — Group issues by category (Code Quality / DDD / Effective Java / Stability / Spring Boot)
-3. **Guide** — For each issue: state the problem, cite the rule, suggest the refactoring technique
-4. **Reference** — Point to the relevant reference file for deep-dive
+### 리뷰 절차
 
----
+```
+1. Scan — 전체 파일 훑기
+   → 구조 파악, 레이어 위치, 의존 방향 확인
 
-## Code Quality
+2. Critical Issues 먼저 — 즉시 수정 필요
+   → 동시성 안전성 (synchronized, ThreadLocal)
+   → Null 안전성 (null 반환, Optional 오용)
+   → 아키텍처 위반 (의존성 방향, 도메인 오염)
+   → 외부 호출에 Timeout/Circuit Breaker 없음
 
-### Checklist
-- [ ] No `synchronized` → use `ReentrantLock` instead
-- [ ] No `ThreadLocal` → use `ScopedValue` instead
-- [ ] No null returns → `Optional` or empty collections
-- [ ] No inner class/record → each DTO in its own file
-- [ ] Records used for DTOs and Value Objects
+3. Major Issues — 수정 권장
+   → Effective Java 위반 (equals/hashCode, static factory 등)
+   → 코드 품질 (메서드 길이, 중복 코드, 매직 넘버)
+   → 리팩토링 필요 Code Smell
 
-**When found:** See `references/release-it-stability.md` (Virtual Thread safety) and `references/clean-and-pragmatic.md` (structure rules)
+4. Minor Issues — 제안
+   → 네이밍 개선
+   → 불필요한 복잡도
 
-**Refactoring techniques:**
-- `synchronized` → Replace with `ReentrantLock`; check for `ThreadLocal` in same class
-- Inner DTO → Extract Class (move to its own file)
+5. 카테고리별 피드백 작성
+   → Critical → Major → Minor 순서
+   → 각 지적에 수정 방법 제시
+```
 
----
+### 동시성 코드가 있다면?
 
-## DDD / Architecture
+```
+확인 항목:
+├─ synchronized 블록/메서드 사용?
+│   → Critical: ReentrantLock으로 교체
+│
+├─ ThreadLocal 사용?
+│   → Critical: ScopedValue 마이그레이션 검토
+│
+├─ 공유 가변 필드 (non-final)?
+│   → Critical: AtomicXxx, ConcurrentHashMap, 불변화
+│
+└─ Virtual Thread 환경에서 blocking 연산 in synchronized?
+    → Critical: 즉시 수정
+```
 
-### Checklist
-- [ ] Correct layer placement (domain / application / infrastructure / presentation)
-- [ ] No upward dependency violations (e.g., domain → infrastructure is forbidden)
-- [ ] Aggregate accessed through root only — no direct child entity mutation
-- [ ] Domain objects carry behavior (no Anemic Domain Model)
+### 아키텍처를 확인한다면?
 
-**When found:** See `references/domain-driven-design.md`
+```
+의존성 방향 확인:
+Controller → Service → Domain ← Repository Interface
+                         ↑
+              Infrastructure (Repository 구현체)
 
-**Refactoring techniques:**
-- Layer violation → Extract Interface (keep interface in domain, move impl to infrastructure)
-- Anemic model → Move Method (push behavior into the domain object)
-- Direct child access → Add Method on Aggregate Root
+위반 패턴:
+├─ Controller에 비즈니스 로직 → Service로 이동
+├─ Service가 다른 Service를 직접 의존 (순환) → 이벤트/레이어 분리
+├─ Domain Entity에 @Autowired → 제거
+├─ Repository 구현체가 domain 패키지에 → infrastructure로 이동
+└─ Aggregate 내부 Entity를 외부에서 직접 수정 → Root 통해서만
+```
 
----
+### 외부 호출이 있다면?
 
-## Effective Java
+```
+각 외부 호출 확인:
+├─ Timeout 설정 있음? (없으면 Critical)
+├─ Circuit Breaker 있음? (없으면 Major)
+├─ Fallback 있음? (없으면 Major)
+└─ 입력 검증 있음? (없으면 Major)
+```
 
-### Checklist
-- [ ] Static factory or Builder used where appropriate (≥4 params or optional fields)
-- [ ] Value Objects are immutable (`record` or `final` fields, no setters)
-- [ ] `Optional` used only as return type — never as field or parameter
-- [ ] `enum` used instead of int constants
+## 피드백 형식
 
-**When found:** See `references/effective-java.md`
+```
+[Critical] synchronized 사용 → Virtual Thread pin 위험
+  현재: synchronized (this) { ... }
+  수정: ReentrantLock 사용
+  참고: review-checklist.md — 동시성 안전성
 
-**Refactoring techniques:**
-- Constructor with ≥4 params → Introduce Builder
-- Mutable VO → Replace with `record` or make fields `final`
-- Int constants → Replace Type Code with Enum
+[Major] null 반환 → NPE 위험
+  현재: return null;
+  수정: return Optional.empty(); 또는 빈 컬렉션
 
----
+[Minor] 메서드명 개선 제안
+  현재: void doThing()
+  제안: void processPayment()
+```
 
-## Stability / Production Readiness
+## Quick Rules
 
-### Checklist (required when external calls present)
-- [ ] **All** external calls (HTTP/SMTP/Redis/external DB) have explicit `connectTimeout` + `readTimeout`
-- [ ] Unstable dependencies have Circuit Breaker (`@CircuitBreaker` or programmatic)
-- [ ] Circuit Breaker has fallback method (degraded mode)
-- [ ] Retry applies to idempotent operations only (GET, PUT) + exponential backoff
-- [ ] Redis/cache failure has auth-path fallback
-- [ ] Input validated at system boundary (controller/filter)
+리뷰 시 항상 확인:
+1. `synchronized` → ReentrantLock?
+2. `ThreadLocal` → ScopedValue?
+3. `null` 반환 → Optional?
+4. DTO가 class → record?
+5. 외부 호출에 Timeout?
+6. 의존성 방향이 안쪽?
+7. 비즈니스 로직이 Controller에 있지 않음?
 
-**When found:** See `references/release-it-stability.md`
+## Delegation
 
-**Refactoring techniques:**
-- Missing timeout → add `connectTimeout`/`readTimeout` to client config
-- Missing Circuit Breaker → add `@CircuitBreaker(name = "...", fallbackMethod = "...")`
-- Retry on POST → remove or add idempotency key first
+| 상황 | 위임 스킬 |
+|------|----------|
+| Spring Boot 패턴 리뷰 | `java:spring` |
+| 새 코드 작성 필요 | `java:coder` |
+| 테스트 코드 리뷰 | `java:tester` |
 
----
-
-## Spring Boot / API
-
-→ See **java:spring** skill for Spring Boot / API review checklist and refactoring techniques.
-
----
-
-## Reference File Guide
-
-| File | When to Open |
-|------|-------------|
-| `references/clean-and-pragmatic.md` | Naming, function size, structure rules |
-| `references/design-and-solid.md` | SOLID violations, GoF pattern misuse — consult when reviewing class dependencies, interface segregation, or design pattern usage |
-| `references/refactoring-catalog.md` | General refactoring technique lookup — consult when section guidance doesn't name the specific refactoring needed |
-| `references/effective-java.md` | EJ idiom violations |
-| `references/domain-driven-design.md` | DDD and architecture issues |
-| **java:spring** skill | Spring annotation and API issues |
-| `references/release-it-stability.md` | Stability and Virtual Thread issues |
+## References
+- `references/review-checklist.md` — 동시성, Null, 아키텍처, Effective Java, 안정성, Code Smell 체크리스트

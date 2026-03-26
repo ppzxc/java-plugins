@@ -6,6 +6,7 @@ description: >
   commands (/review, "review this code"), or multi-file quality audits.
   "PR review" means any code diff or multi-file review, not GitHub-specific tools.
   NOT for generating new code or writing tests.
+user_invocable: true
 ---
 
 # Java Reviewer
@@ -30,7 +31,7 @@ Review Java code for quality, architecture compliance, and production readiness.
 - [ ] No inner class/record → each DTO in its own file
 - [ ] Records used for DTOs and Value Objects
 
-**When found:** See `../java-coder/references/release-it-stability.md` (Virtual Thread safety) and `../java-coder/references/clean-and-pragmatic.md` (structure rules)
+**When found:** See `references/release-it-stability.md` (Virtual Thread safety) and `references/clean-and-pragmatic.md` (structure rules)
 
 **Refactoring techniques:**
 - `synchronized` → Replace with `ReentrantLock`; check for `ThreadLocal` in same class
@@ -46,7 +47,7 @@ Review Java code for quality, architecture compliance, and production readiness.
 - [ ] Aggregate accessed through root only — no direct child entity mutation
 - [ ] Domain objects carry behavior (no Anemic Domain Model)
 
-**When found:** See `../java-coder/references/domain-driven-design.md`
+**When found:** See `references/domain-driven-design.md`
 
 **Refactoring techniques:**
 - Layer violation → Extract Interface (keep interface in domain, move impl to infrastructure)
@@ -63,7 +64,7 @@ Review Java code for quality, architecture compliance, and production readiness.
 - [ ] `Optional` used only as return type — never as field or parameter
 - [ ] `enum` used instead of int constants
 
-**When found:** See `../java-coder/references/effective-java.md`
+**When found:** See `references/effective-java.md`
 
 **Refactoring techniques:**
 - Constructor with ≥4 params → Introduce Builder
@@ -82,7 +83,7 @@ Review Java code for quality, architecture compliance, and production readiness.
 - [ ] Redis/cache failure has auth-path fallback
 - [ ] Input validated at system boundary (controller/filter)
 
-**When found:** See `../java-coder/references/release-it-stability.md`
+**When found:** See `references/release-it-stability.md`
 
 **Refactoring techniques:**
 - Missing timeout → add `connectTimeout`/`readTimeout` to client config
@@ -101,10 +102,10 @@ Review Java code for quality, architecture compliance, and production readiness.
 
 | File | When to Open |
 |------|-------------|
-| `../java-coder/references/clean-and-pragmatic.md` | Naming, function size, structure rules |
-| `../java-coder/references/design-and-solid.md` | SOLID violations, GoF pattern misuse — consult when reviewing class dependencies, interface segregation, or design pattern usage |
-| `../java-coder/references/refactoring-catalog.md` | General refactoring technique lookup — consult when section guidance doesn't name the specific refactoring needed |
-| `../java-coder/references/effective-java.md` | EJ idiom violations |
-| `../java-coder/references/domain-driven-design.md` | DDD and architecture issues |
+| `references/clean-and-pragmatic.md` | Naming, function size, structure rules |
+| `references/design-and-solid.md` | SOLID violations, GoF pattern misuse — consult when reviewing class dependencies, interface segregation, or design pattern usage |
+| `references/refactoring-catalog.md` | General refactoring technique lookup — consult when section guidance doesn't name the specific refactoring needed |
+| `references/effective-java.md` | EJ idiom violations |
+| `references/domain-driven-design.md` | DDD and architecture issues |
 | **spring** skill | Spring annotation and API issues |
-| `../java-coder/references/release-it-stability.md` | Stability and Virtual Thread issues |
+| `references/release-it-stability.md` | Stability and Virtual Thread issues |

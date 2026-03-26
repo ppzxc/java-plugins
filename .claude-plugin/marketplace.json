@@ -14,7 +14,31 @@
     {
       "name": "java-coder",
       "source": "./plugins/java-coder",
-      "description": "Production-grade Java patterns — Java 25, Spring Boot 4, DDD, TDD, and stability patterns",
+      "description": "Production-grade Java patterns — SOLID, Clean Code, DDD, Effective Java, and stability patterns",
+      "version": "0.0.1"
+    },
+    {
+      "name": "java-reviewer",
+      "source": "./plugins/java-reviewer",
+      "description": "Java code review checklists — Code Quality, DDD/Architecture, Effective Java, Stability/Production Readiness, and Spring Boot/API",
+      "version": "0.0.1"
+    },
+    {
+      "name": "java-tester",
+      "source": "./plugins/java-tester",
+      "description": "Java TDD workflow and test writing — Red-Green-Refactor, test type strategy, Mockito, Testcontainers, legacy code testing",
+      "version": "0.0.1"
+    },
+    {
+      "name": "java-25",
+      "source": "./plugins/java-25",
+      "description": "Java 25 LTS feature guide — records, sealed classes, pattern matching, virtual threads, ScopedValue, structured concurrency, stable values",
+      "version": "0.0.1"
+    },
+    {
+      "name": "spring",
+      "source": "./plugins/spring",
+      "description": "Spring Boot 4 conventions — constructor injection, ProblemDetail, REST patterns, test annotations, security, observability, migration",
       "version": "0.0.1"
     }
   ]

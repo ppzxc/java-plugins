@@ -1,0 +1,10 @@
+{
+  "name": "spring",
+  "version": "0.0.1",
+  "description": "Spring Boot 4 conventions — constructor injection, ProblemDetail, REST patterns, test annotations, security, observability, migration",
+  "author": {
+    "name": "ppzxc",
+    "email": "cjh8487@naver.com",
+    "url": "https://ppzxc.github.io"
+  }
+}

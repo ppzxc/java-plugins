@@ -6,6 +6,7 @@ description: >
   *Test.java or *IT.java file creation or modification,
   test strategy decisions, or coverage analysis.
   NOT for writing production code (java-coder handles that).
+user_invocable: true
 ---
 
 # Java Tester
@@ -22,7 +23,7 @@ TDD workflow and test writing guide for Java 25 + Spring Boot 4.
 
 Repeat per behavior unit. Commit after each green phase.
 
-→ See `../java-coder/references/tdd-and-legacy.md` for deep-dive on test strategy and legacy code techniques
+→ See `references/tdd-and-legacy.md` for deep-dive on test strategy and legacy code techniques
 
 ---
 
@@ -105,7 +106,7 @@ When adding tests to untested production code:
 3. **Extract and isolate** — use Extract Method to create a testable unit
 4. **Then fix** — change behavior under test coverage
 
-→ See `../java-coder/references/tdd-and-legacy.md` for seam types and techniques
+→ See `references/tdd-and-legacy.md` for seam types and techniques
 
 ---
 
@@ -113,5 +114,5 @@ When adding tests to untested production code:
 
 | File | When to Open |
 |------|-------------|
-| `../java-coder/references/tdd-and-legacy.md` | TDD deep-dive, legacy code seams, test doubles |
+| `references/tdd-and-legacy.md` | TDD deep-dive, legacy code seams, test doubles |
 | **spring** skill | Spring test annotations, @WebMvcTest, @DataJpaTest, @SpringBootTest patterns |

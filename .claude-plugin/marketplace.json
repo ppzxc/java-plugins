@@ -14,7 +14,7 @@
     {
       "name": "java",
       "source": "./plugins/java",
-      "description": "Java skills — production-grade coding (java:coder), code review (java:reviewer), TDD (java:tester), Java 25 features (java:jdk25), Spring Boot 4 (java:spring)",
+      "description": "Java skills — production-grade coding (java:coder), code review (java:reviewer), TDD (java:tester), Spring Boot 4 (java:spring)",
       "version": "0.0.1"
     }
   ]

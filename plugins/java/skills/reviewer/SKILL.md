@@ -1,5 +1,5 @@
 ---
-name: java-reviewer
+name: reviewer
 description: >
   Use when reviewing Java code, auditing code quality, or checking
   architecture compliance. Trigger on explicit review requests, PR review
@@ -94,7 +94,7 @@ Review Java code for quality, architecture compliance, and production readiness.
 
 ## Spring Boot / API
 
-→ See **spring** skill for Spring Boot / API review checklist and refactoring techniques.
+→ See **java:spring** skill for Spring Boot / API review checklist and refactoring techniques.
 
 ---
 
@@ -107,5 +107,5 @@ Review Java code for quality, architecture compliance, and production readiness.
 | `references/refactoring-catalog.md` | General refactoring technique lookup — consult when section guidance doesn't name the specific refactoring needed |
 | `references/effective-java.md` | EJ idiom violations |
 | `references/domain-driven-design.md` | DDD and architecture issues |
-| **spring** skill | Spring annotation and API issues |
+| **java:spring** skill | Spring annotation and API issues |
 | `references/release-it-stability.md` | Stability and Virtual Thread issues |

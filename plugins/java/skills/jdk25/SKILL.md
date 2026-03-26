@@ -1,5 +1,5 @@
 ---
-name: java-25
+name: jdk25
 description: >
   Use when writing or reviewing Java code that uses Java 25 features — records, sealed classes,
   pattern matching (instanceof/switch), virtual threads, ScopedValue, structured concurrency,

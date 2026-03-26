@@ -1,17 +1,17 @@
 ---
-name: java-coder
+name: coder
 description: >
   Use when writing, designing, or refactoring Java code.
   Trigger for .java file creation or modification, REST API design,
   JPA entity modeling, or domain modeling.
-  NOT for test file writing (java-tester), code review (java-reviewer),
-  Java 25 features (java-25), or Spring Boot patterns (spring).
+  NOT for test file writing (java:tester), code review (java:reviewer),
+  Java 25 features (java:jdk25), or Spring Boot patterns (java:spring).
 user_invocable: true
 ---
 
 # Java Coder — Integrated Guide (11-Book Edition)
 
-Unified skill combining software engineering principles from 11 landmark books. For Java 25 features see **java-25** skill, for Spring Boot 4 see **spring** skill.
+Unified skill combining software engineering principles from 11 landmark books. For Java 25 features see **java:jdk25** skill, for Spring Boot 4 see **java:spring** skill.
 
 ## Integrated Principle Sources
 
@@ -65,7 +65,7 @@ Before writing code, think about structure and domain model.
 
 ### Step 3: Write Tests First (TDD)
 
-→ Activate **java-tester** skill for the full TDD workflow, coverage checklist, and test patterns.
+→ Activate **java:tester** skill for the full TDD workflow, coverage checklist, and test patterns.
 
 ### Step 4: Refactor (RF, LEG)
 
@@ -92,7 +92,7 @@ After tests are green, improve structure:
 2. **Circuit Breaker**: 불안정한 의존성(이메일, 푸시, 외부 API, 웹훅)에 Resilience4j `@CircuitBreaker` 적용 확인.
 3. **Fallback**: Redis 장애 시 degraded mode 가능 여부 검토 (특히 인증 경로).
 4. **Retry**: 멱등 연산(GET, PUT)만. POST는 멱등키 없으면 retry 금지.
-5. **Virtual Thread 안전**: `synchronized` → `ReentrantLock`, `ThreadLocal` → `ScopedValue` → See **java-25** skill
+5. **Virtual Thread 안전**: `synchronized` → `ReentrantLock`, `ThreadLocal` → `ScopedValue` → See **java:jdk25** skill
 
 → See `references/release-it-stability.md` for stability patterns and anti-patterns
 
@@ -121,13 +121,13 @@ After tests are green, improve structure:
 
 ## Java 25 Feature Usage
 
-→ See **java-25** skill for the full Java 25 feature reference, Virtual Thread safety rules, and usage conventions.
+→ See **java:jdk25** skill for the full Java 25 feature reference, Virtual Thread safety rules, and usage conventions.
 
 ---
 
 ## Spring Boot 4 Conventions
 
-→ See **spring** skill for Spring Boot 4 conventions, test patterns, and review checklist.
+→ See **java:spring** skill for Spring Boot 4 conventions, test patterns, and review checklist.
 
 ---
 
@@ -231,7 +231,7 @@ synchronized void criticalSection() { ... }
 
 ## Error Handling / Logging
 
-**Errors**: → See **spring** skill for RFC 9457 ProblemDetail error handling patterns.
+**Errors**: → See **java:spring** skill for RFC 9457 ProblemDetail error handling patterns.
 
 **Logging** (`@Slf4j`, structured, masked):
 ```java
@@ -248,8 +248,8 @@ log.info("Order placed: orderId={}, tenantId={}", orderId, tenantId);
 | `references/clean-and-pragmatic.md` | Naming, function size, comments, error handling (CC + PP + CodeC) |
 | `references/design-and-solid.md` | SOLID deep-dive, GoF patterns, anti-patterns |
 | `references/refactoring-catalog.md` | Specific refactoring technique lookup (RF) |
-| **java-25** skill | Java 25 features — records, sealed classes, virtual threads, ScopedValue |
-| **spring** skill | Spring Boot 4 conventions, test patterns, review checklist |
+| **java:jdk25** skill | Java 25 features — records, sealed classes, virtual threads, ScopedValue |
+| **java:spring** skill | Spring Boot 4 conventions, test patterns, review checklist |
 | `references/effective-java.md` | Static factory, Builder, generics, enum, Optional, concurrency |
 | `references/domain-driven-design.md` | Aggregate, Value Object, Domain Event, Context Mapping, module mapping |
 | `references/release-it-stability.md` | Circuit Breaker, Bulkhead, Timeout, Retry, anti-patterns |

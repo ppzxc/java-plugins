@@ -1,11 +1,11 @@
 ---
-name: java-tester
+name: tester
 description: >
   Use when applying TDD or writing tests.
   Trigger for explicit TDD workflow requests ("write this test-first"),
   *Test.java or *IT.java file creation or modification,
   test strategy decisions, or coverage analysis.
-  NOT for writing production code (java-coder handles that).
+  NOT for writing production code (java:coder handles that).
 user_invocable: true
 ---
 
@@ -70,7 +70,7 @@ void processPayment_whenGatewayTimeout_throwsPaymentException() { ... }
 
 ## Spring Test Patterns
 
-→ See **spring** skill for `@WebMvcTest`, `@DataJpaTest`, and `@SpringBootTest` patterns.
+→ See **java:spring** skill for `@WebMvcTest`, `@DataJpaTest`, and `@SpringBootTest` patterns.
 
 ---
 
@@ -115,4 +115,4 @@ When adding tests to untested production code:
 | File | When to Open |
 |------|-------------|
 | `references/tdd-and-legacy.md` | TDD deep-dive, legacy code seams, test doubles |
-| **spring** skill | Spring test annotations, @WebMvcTest, @DataJpaTest, @SpringBootTest patterns |
+| **java:spring** skill | Spring test annotations, @WebMvcTest, @DataJpaTest, @SpringBootTest patterns |

@@ -1,10 +1,9 @@
 ---
-name: tester
 description: >
   Use when applying TDD or writing test code. Trigger for *Test.java or *IT.java
   file creation/modification, explicit TDD workflow requests, test strategy decisions,
   or coverage analysis. NOT for writing production code (java:coder handles that).
-user_invocable: true
+user-invocable: true
 ---
 
 # java:tester

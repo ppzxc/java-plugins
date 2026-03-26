@@ -1,9 +1,5 @@
 {
   "enabledPlugins": {
-    "java-coder@java-plugins": true,
-    "java-reviewer@java-plugins": true,
-    "java-tester@java-plugins": true,
-    "java-25@java-plugins": true,
-    "spring@java-plugins": true
+    "java@java-plugins": true
   }
 }

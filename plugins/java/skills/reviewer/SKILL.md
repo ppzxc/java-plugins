@@ -1,11 +1,10 @@
 ---
-name: reviewer
 description: >
   Use when reviewing Java code, auditing code quality, or checking architecture
   compliance. Trigger on explicit review requests, PR review commands (/review,
   "review this code"), or multi-file quality audits. NOT for generating new code
   or writing tests.
-user_invocable: true
+user-invocable: true
 ---
 
 # java:reviewer

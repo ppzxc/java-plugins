@@ -1,11 +1,10 @@
 ---
-name: spring
 description: >
   Use when writing, testing, or reviewing Spring Boot 4 code — controllers,
   services, repositories, security configuration, Spring test annotations
   (@WebMvcTest, @DataJpaTest, @SpringBootTest), ProblemDetail error handling,
   API versioning, or any Spring Framework 7 / Jakarta EE 11 patterns.
-user_invocable: true
+user-invocable: true
 ---
 
 # java:spring

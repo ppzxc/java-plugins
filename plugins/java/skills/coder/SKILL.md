@@ -1,11 +1,10 @@
 ---
-name: coder
 description: >
   Use when writing, designing, or refactoring Java code. Trigger for .java file
   creation or modification, domain modeling, concurrency code, or API design.
   NOT for test file writing (java:tester), code review (java:reviewer), or
   Spring Boot patterns (java:spring).
-user_invocable: true
+user-invocable: true
 ---
 
 # java:coder

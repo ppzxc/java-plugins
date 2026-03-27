@@ -4,6 +4,7 @@ description: >
   file creation/modification, explicit TDD workflow requests, test strategy decisions,
   or coverage analysis. NOT for writing production code (java:coder handles that).
 user-invocable: true
+version: 0.0.2
 ---
 
 # java:tester

@@ -5,7 +5,7 @@ description: >
   NOT for test file writing (java:tester), code review (java:reviewer), or
   Spring Boot patterns (java:spring).
 user-invocable: true
-version: 0.0.3
+version: 0.0.4
 ---
 
 # java:coder

@@ -100,19 +100,14 @@ String category = switch (order) {
 
 ## Virtual Threads (Project Loom)
 
-RULE: Virtual Thread에서 `synchronized` 블록 사용 금지
-WHEN: Virtual Thread 환경 (Spring Boot 3.2+ with virtual threads enabled)
-WHY: `synchronized`는 carrier thread를 pin하여 Virtual Thread의 확장성을 무효화
-PATTERN: `ReentrantLock` 으로 교체
+RULE: Virtual Thread에서 `synchronized` 사용 기본 (JDK 24+ Pinning 해결됨)
+WHEN: Virtual Thread 환경
+WHY: JEP 491을 통해 `synchronized` 블록 내부에서 블로킹 작업이 발생해도 더 이상 carrier thread를 pin하지 않음. 코드가 간결해짐.
+PATTERN: 순수 자바 키워드 사용
 ```java
-// BAD — Virtual Thread pin 발생
-synchronized (this) { ... }
-// GOOD
-private final ReentrantLock lock = new ReentrantLock();
-lock.lock();
-try { ... } finally { lock.unlock(); }
+public synchronized void process() { ... }
 ```
-EXCEPTION: JVM 내부 라이브러리 코드 (직접 제어 불가)
+EXCEPTION: Timeout 설정이나 Condition 제어 등 고도화된 락 제어가 필요한 경우에만 `ReentrantLock` 사용
 
 RULE: Virtual Thread에서 `ThreadLocal` 사용 금지
 WHEN: Virtual Thread 환경

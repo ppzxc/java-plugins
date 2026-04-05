@@ -1,5 +1,5 @@
 # Java Code Review Checklist
-> Sources: Effective Java, Clean Code, Clean Architecture, Refactoring
+> Sources: Effective Java, Clean Code, Clean Architecture, Refactoring, DDD
 > 리뷰 관점의 체크리스트. "이것이 있으면 지적, 이것이 없으면 제안"
 > Format: CHECK → WHY → FIX
 
@@ -7,27 +7,25 @@
 
 ## 동시성 안전성 (Critical)
 
-CHECK: `synchronized` 블록/메서드 사용
-WHY: Virtual Thread 환경에서 carrier thread pin 발생, 성능 저하
-FIX: `ReentrantLock` 교체
-```java
-// FIX
-private final ReentrantLock lock = new ReentrantLock();
-lock.lock();
-try { /* critical section */ } finally { lock.unlock(); }
-```
-
 CHECK: `ThreadLocal` 사용
 WHY: Virtual Thread 환경에서 누수 위험, ScopedValue가 더 안전
-FIX: `ScopedValue` 마이그레이션 검토
+FIX: `ScopedValue` 마이그레이션 권장
 
 CHECK: 공유 가변 상태 (non-final 필드를 여러 스레드가 접근)
 WHY: 데이터 경쟁 조건
 FIX: `final` 필드, `AtomicXxx`, `ConcurrentHashMap`, 불변 객체
 
+CHECK: Virtual Thread 환경에서 무거운 Native/JNI 호출 in `synchronized`
+WHY: JEP 491 이후에도 Native 호출 시에는 여전히 Carrier Thread Pinning 발생 가능
+FIX: `ReentrantLock` 교체 검토
+
 ---
 
-## Null 안전성 (Critical)
+## Null & 에러 안전성 (Critical)
+
+CHECK: 비즈니스 실패에 Exception 사용 (예: 잔액 부족 등)
+WHY: 제어 흐름을 숨기고 컴파일 타임에 처리를 강제할 수 없음 (VIBE 코딩 위반)
+FIX: `Sealed Interface` 기반 **Result Pattern** 반환으로 교체
 
 CHECK: 메서드가 `null` 반환
 WHY: `NullPointerException` 위험, 호출자가 null 체크를 강요받음
@@ -37,45 +35,33 @@ CHECK: `Optional.get()` 호출 (isPresent 체크 없이)
 WHY: `NoSuchElementException` 위험
 FIX: `orElse()`, `orElseGet()`, `orElseThrow()`, `ifPresent()` 사용
 
-CHECK: `Optional`을 필드/매개변수로 사용
-WHY: Optional은 반환 타입으로만 설계됨
-FIX: 필드는 `null` 허용 + 어노테이션, 매개변수는 오버로딩으로 대체
-
 ---
 
-## 객체 설계 (Effective Java)
+## 객체 설계 및 DDD (Strict DDD)
+
+CHECK: 도메인 계층(Entity, VO, Aggregate)에 Lombok 어노테이션 사용
+WHY: 캡슐화 파괴, 불완전한 객체 생성 허용, 도메인 순수성 오염
+FIX: Lombok 제거, 수동 생성자/내부 Builder/팩토리 메서드 구현
+
+CHECK: 원시 타입 집착 (Primitive Obsession)
+WHY: 비즈니스 의미 누락, 잘못된 값 할당 위험
+FIX: `record` 기반 Value Object(VO) 도입 (Email, Money 등)
+
+CHECK: 빈약한 도메인 모델 (Anemic Domain Model)
+WHY: 비즈니스 로직이 서비스로 유출되어 객체 지향 원칙 위반
+FIX: 데이터 조작 로직을 도메인 객체 내부 메서드(`order.cancel()` 등)로 이동
 
 CHECK: DTO가 일반 class로 구현됨 (record 미사용)
 WHY: record가 더 간결하고 불변 보장
-FIX: `record`로 교체 (JPA Entity, 가변 상태 필요한 경우 제외)
+FIX: `record`로 교체
 
-CHECK: 생성자 매개변수가 4개 이상
-WHY: 호출자가 인수 순서를 기억해야 함, 오류 가능성 높음
-FIX: Builder 패턴 도입
-
-CHECK: `equals()` 오버라이드 시 `hashCode()` 미오버라이드
-WHY: HashSet, HashMap에서 동작 오류
-FIX: 항상 함께 오버라이드
-
-CHECK: `equals()`가 가변 필드로 구현됨
-WHY: HashMap 키, HashSet 원소로 사용 시 버그
-FIX: 불변 필드(주로 ID)로만 구현
-
-CHECK: `clone()` 오버라이드 사용
-WHY: 깊은 복사 계약 이행이 어렵고 버그 유발
-FIX: 복사 생성자 또는 static factory `copy(original)` 사용
+CHECK: 생성자 매개변수가 4개 이상인데 Builder 미사용
+WHY: 호출자 실수 가능성 높음
+FIX: 수동 static inner Builder 도입 (Lombok 금지)
 
 ---
 
 ## 아키텍처 (Clean Architecture)
-
-CHECK: Controller/API 계층에 비즈니스 로직
-WHY: 재사용 불가, 테스트 어려움, 계층 분리 위반
-FIX: Service 레이어로 이동
-
-CHECK: Service가 다른 Service를 직접 의존 (순환 의존 발생)
-WHY: 결합도 증가, 변경 영향 범위 확대
-FIX: 이벤트 기반 통신 또는 중간 레이어 추출
 
 CHECK: Domain Entity에 `@Autowired` / Spring 어노테이션
 WHY: 도메인이 프레임워크에 의존 — 아키텍처 오염
@@ -105,14 +91,6 @@ CHECK: 매직 넘버/문자열 리터럴
 WHY: 의미 불명확, 수정 시 누락 위험
 FIX: `private static final` 상수로 추출
 
-CHECK: 주석이 "무엇"을 설명 (코드로 표현 가능한 내용)
-WHY: 코드와 주석이 불일치할 수 있음
-FIX: 의미 있는 이름으로 코드 자체가 설명하도록. 주석은 "왜"만 허용
-
-CHECK: 같은 if/switch 조건이 여러 곳에 반복
-WHY: Open/Closed Principle 위반, 새 타입 추가 시 모두 수정해야 함
-FIX: Strategy 패턴, Polymorphism, Sealed class + pattern matching
-
 ---
 
 ## 안정성 (Release It!)
@@ -125,45 +103,17 @@ CHECK: 외부 서비스 장애 시 Fallback 없음
 WHY: 부분 장애가 전체 장애로 확산
 FIX: Circuit Breaker + Fallback 메서드 추가
 
-CHECK: 입력 검증이 없거나 Service 레이어에서만 수행
-WHY: Controller에서 먼저 차단해야 불필요한 처리 방지
-FIX: Controller에서 `@Valid` + Bean Validation 적용
-
-CHECK: Redis/캐시 장애 시 동작 미정의
-WHY: 캐시 장애가 전체 서비스 중단으로 이어짐
-FIX: try-catch로 캐시 장애 시 DB 폴백 구현
-
----
-
-## 리팩토링 제안 트리거 (Refactoring — Fowler)
-
-다음이 보이면 리팩토링을 제안한다:
-
-| Code Smell | 리팩토링 기법 |
-|-----------|-------------|
-| 긴 메서드 (30줄+) | Extract Method |
-| 긴 매개변수 목록 (4개+) | Introduce Parameter Object |
-| 중복 코드 (동일 로직 2곳+) | Extract Method, Pull Up Method |
-| 데이터 클래스 (getter/setter만) | Move Method, 도메인 로직 이동 |
-| 타입에 따른 반복 switch/if | Replace Conditional with Polymorphism |
-| 임시 변수 (한 번만 사용) | Inline Variable, Replace Temp with Query |
-| 주석이 없으면 이해 불가 | Extract Method (주석 내용 = 메서드 이름) |
-
 ---
 
 ## Effective Java 추가 체크
 
-CHECK: `Comparable` 구현 시 `equals`와 일관성 없음
-WHY: `TreeSet`, `TreeMap` 동작 오류
-FIX: `compareTo` 결과가 0 ↔ `equals` 결과가 true
+CHECK: `equals()` 오버라이드 시 `hashCode()` 미오버라이드
+WHY: HashSet, HashMap에서 동작 오류
+FIX: 항상 함께 오버라이드
 
 CHECK: 제네릭 타입에 raw type 사용 (`List` 대신 `List<String>`)
 WHY: 컴파일 타임 타입 안전성 상실
 FIX: 타입 매개변수 명시
-
-CHECK: 가변 args (`varargs`)와 제네릭 함께 사용
-WHY: heap pollution 경고, 안전하지 않을 수 있음
-FIX: `@SafeVarargs` 추가하거나 `List` 매개변수로 대체
 
 CHECK: 문자열 연결 (`+`)을 반복문 안에서 사용
 WHY: O(n²) 성능

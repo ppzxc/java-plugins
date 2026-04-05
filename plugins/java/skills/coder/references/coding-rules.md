@@ -62,15 +62,13 @@ void process(Optional<User> user) {} // X
 
 ## 동시성 (Java Concurrency in Practice + JDK 25)
 
-RULE: `synchronized` 사용 금지
-WHEN: 모니터 락이 필요한 모든 경우
-PATTERN: `ReentrantLock` 사용
+RULE: `synchronized` 기본 사용 (JDK 24+ Pinning 해결됨)
+WHEN: 도메인 로직이나 일반적인 동기화가 필요한 경우
+PATTERN: JEP 491로 인해 Virtual Thread에서 `synchronized` 사용 시 더 이상 Pinning 문제가 발생하지 않습니다. 코드가 훨씬 간결해지므로 우선적으로 사용합니다.
 ```java
-private final ReentrantLock lock = new ReentrantLock();
-lock.lock();
-try { /* critical section */ } finally { lock.unlock(); }
+public synchronized void updateState() { /* critical section */ }
 ```
-EXCEPTION: `synchronized` 컬렉션 래퍼 사용 시 (하지만 `ConcurrentHashMap` 선호)
+EXCEPTION: Timeout 설정, Condition 대기 등 고급 동기화 제어가 필요한 외부 호출 등에는 `ReentrantLock` 사용
 
 RULE: `ThreadLocal` 사용 금지
 WHEN: 스레드별 상태 저장이 필요할 때
@@ -298,6 +296,11 @@ PATTERN: `isActive`, `hasPermission`, `canCancel()`
 
 RULE: 메서드 이름은 동사+명사
 PATTERN: `createOrder()`, `findByEmail()`, `calculateTotal()`
+
+RULE: 매개변수 2개 이하가 이상적, 3개부터 객체로 묶기
+WHEN: 메서드 매개변수가 3개 이상
+PATTERN: 파라미터 객체 도입 (Introduce Parameter Object)
+otal()`
 
 RULE: 매개변수 2개 이하가 이상적, 3개부터 객체로 묶기
 WHEN: 메서드 매개변수가 3개 이상

@@ -59,6 +59,18 @@ public record Money(BigDecimal amount, Currency currency) {
 ```
 EXCEPTION: JPA 매핑 시 `@Embeddable` + class 사용 (record JPA 미지원)
 
+RULE: Primitive Obsession(원시 타입 집착) 방지
+WHEN: 도메인 내에서 의미를 가지는 원시 타입(`String`, `int` 등) 사용 시
+PATTERN: `record`를 활용한 래퍼 객체(Value Object)를 생성하고 생성자에서 Invariant(불변성)를 검증한다.
+```java
+public record Email(String value) {
+    public Email {
+        if (value == null || !value.contains("@")) 
+            throw new IllegalArgumentException("Invalid email format");
+    }
+}
+```
+
 RULE: Value Object는 불변
 WHEN: 값을 "변경"해야 할 때
 PATTERN: 새 인스턴스를 반환한다 (수정하지 않는다)
@@ -183,3 +195,4 @@ public class TransferService {
 }
 ```
 EXCEPTION: Application Service와 혼동하지 말 것 — Domain Service는 인프라 의존성 없음
+on Service와 혼동하지 말 것 — Domain Service는 인프라 의존성 없음

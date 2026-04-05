@@ -5,7 +5,7 @@ description: >
   NOT for test file writing (java:tester), code review (java:reviewer), or
   Spring Boot patterns (java:spring).
 user-invocable: true
-version: 0.0.2
+version: 0.0.3
 ---
 
 # java:coder
@@ -57,7 +57,7 @@ version: 0.0.2
 │   → static factory 권장 (Money.of(amount, currency))
 │
 └─ 4개 이상 또는 선택적 매개변수 있음
-    → Builder 패턴 필수
+    → 수동 static inner Builder 또는 정적 팩토리 메서드 필수 (Lombok @Builder 전면 금지)
 ```
 
 ### 동시성 코드를 작성한다면?
@@ -67,7 +67,8 @@ version: 0.0.2
 │
 ├─ I/O 바운드 (HTTP 호출, DB 쿼리, 파일 I/O)
 │   → Virtual Thread: Executors.newVirtualThreadPerTaskExecutor()
-│   → synchronized 금지 → ReentrantLock
+│   → synchronized 허용 (JDK 24+ Pinning 해결됨)
+│   → Timeout 등 고급 제어 필요시에만 ReentrantLock
 │   → ThreadLocal 금지 → ScopedValue
 │
 ├─ CPU 바운드 (계산, 이미지 처리)
@@ -80,14 +81,19 @@ version: 0.0.2
     → ShutdownOnSuccess: 하나만 성공하면 될 때
 ```
 
-### null 처리는?
+### 에러/null 처리는?
 
 ```
-반환값이 없을 수 있다면?
+작업이 실패하거나 반환값이 없을 수 있다면?
 │
-├─ 단일 값 → Optional<T> 반환
-├─ 컬렉션 → 빈 컬렉션 반환 (List.of())
-└─ 없으면 예외가 맞는 상황 → throw NotFoundException
+├─ 예상 가능한 비즈니스 실패 (잔액 부족 등)
+│   → Sealed Class 기반 Result Pattern 반환 (Exception 금지)
+├─ 인프라/시스템 에러 (DB 접속 실패 등)
+│   → throw Exception (Unchecked)
+├─ 단순 단일 값 부재
+│   → Optional<T> 반환
+└─ 컬렉션 부재
+    → 빈 컬렉션 반환 (List.of())
 ```
 
 ### 외부 서비스를 호출한다면?
@@ -127,13 +133,16 @@ version: 0.0.2
 
 DO:
 - DTO → `record`
-- 동시성 락 → `ReentrantLock` (synchronized 금지)
+- 도메인 에러 → `Sealed Class (Result Pattern)` 반환
+- 동시성 제어 → `synchronized` 기본 사용 (단, Timeout 필요시 `ReentrantLock`)
 - 스레드 로컬 → `ScopedValue` (ThreadLocal 금지)
 - null 반환 금지 → `Optional` 또는 빈 컬렉션
 - 의존성은 안쪽 방향 (Controller → Service → Domain)
 - 외부 호출 → Timeout + Circuit Breaker + Fallback 필수
 
 DON'T:
+- 도메인 모델에 Lombok (`@Builder`, `@Data` 등) 사용
+- 비즈니스 규칙 위반을 Exception으로 던짐
 - Domain Entity에 비즈니스 무관한 프레임워크 코드
 - 같은 타입 조건 if/switch를 여러 곳에 반복
 - 메서드 30줄 초과
@@ -149,6 +158,6 @@ DON'T:
 | Spring Controller/Service/Repository/Test | `java:spring` |
 
 ## References
-- `references/coding-rules.md` — 객체 생성, 동시성, 예외, 아키텍처, 안정성, 패턴
+- `references/coding-rules.md` — 객체 생성, 동시성, 예외/Result, 아키텍처, 안정성, 패턴
 - `references/jdk25-rules.md` — JDK 25 기능 (record, sealed, pattern matching, virtual thread 등)
 - `references/ddd-essentials.md` — DDD 핵심 (Entity, Value Object, Aggregate, Repository)

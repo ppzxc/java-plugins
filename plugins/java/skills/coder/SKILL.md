@@ -17,6 +17,18 @@ version: 0.0.6
 - API 설계 (Spring Controller 제외 → `java:spring`)
 - 리팩토링 작업
 
+### 경계 예시 — `java:coder` vs `java:spring`
+
+| 작업 | 스킬 |
+|------|------|
+| `record CreateOrderRequest(...)` — 순수 DTO 정의 | `java:coder` |
+| `class OrderNotFoundException extends RuntimeException` — 도메인 예외 | `java:coder` |
+| `interface OrderRepository` — 도메인 Repository 인터페이스 | `java:coder` |
+| `interface OrderService` — 서비스 인터페이스 (Spring 어노테이션 없음) | `java:coder` |
+| `@Service class OrderServiceImpl` — Spring DI/트랜잭션 포함 구현체 | `java:spring` |
+| `@RestController class OrderController` — Spring MVC | `java:spring` |
+| `@Repository class JpaOrderRepository` — Spring Data JPA | `java:spring` |
+
 ## Decision Tree
 
 ### 새 클래스를 만들어야 한다면?

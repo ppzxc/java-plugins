@@ -112,14 +112,19 @@ public class OrderController {
 }
 ```
 
-RULE: 생성 응답은 `201 Created + Location 헤더`
+RULE: 생성 응답은 `201 Created + Location 헤더` (RFC 7231 준수)
 WHEN: POST로 리소스 생성 시
 PATTERN:
 ```java
 @PostMapping
 public ResponseEntity<OrderResponse> create(@Valid @RequestBody CreateOrderRequest req) {
     OrderResponse order = orderService.create(req);
-    URI location = URI.create("/api/v1/orders/" + order.id());
+    // ServletUriComponentsBuilder: 현재 요청 기반으로 절대 URI 생성 (RFC 7231 준수)
+    // Controller 레이어 전용 — 도메인 레이어에서 직접 참조 금지
+    URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+        .path("/{id}")
+        .buildAndExpand(order.id())
+        .toUri();
     return ResponseEntity.created(location).body(order);
 }
 ```
@@ -227,7 +232,7 @@ public class OrderAlreadyConfirmedException extends RuntimeException { ... }
 
 ## 요청 검증
 
-RULE: DTO에 Bean Validation 어노테이션 적용
+RULE: DTO에 Bean Validation 어노테이션 적용 (DTO 타입은 record — `coding-rules.md` 참조)
 WHEN: Controller 입력 검증
 PATTERN:
 ```java
@@ -346,6 +351,152 @@ Optional<Order> findWithLines(@Param("id") UUID id);
 @EntityGraph(attributePaths = {"lines", "customer"})
 Optional<Order> findDetailById(UUID id);
 ```
+
+---
+
+## JPA Entity 설계
+
+RULE: Entity equals/hashCode — 프록시 안전 패턴
+WHEN: JPA Entity에서 equals/hashCode 오버라이드
+WHY: Hibernate 지연 로딩 프록시는 하위 클래스이므로 `getClass()` 비교 시 불일치 발생
+PATTERN:
+```java
+@Entity
+public class Order {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Hibernate 프록시 호환: instanceof + Objects.hashCode(id)
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Order other)) return false;
+        return id != null && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);  // id가 null이어도 안전
+    }
+}
+```
+EXCEPTION: id가 null인 transient 상태는 `equals` false 반환이 맞다
+
+RULE: Entity 기본 설계 제약
+WHEN: JPA Entity 클래스 설계
+PATTERN:
+- `@NoArgsConstructor(access = AccessLevel.PROTECTED)` 필수 (Hibernate 요구사항)
+- Entity 필드에 `final` 금지 (프록시 생성 불가)
+- 모든 연관관계 기본 `FetchType.LAZY` (필요 시 `@EntityGraph` 활용)
+- Lombok `@Data`, `@Builder`, `@EqualsAndHashCode` 금지 — 수동 구현 필수
+
+RULE: `@GeneratedValue` 기본 전략은 `IDENTITY`
+WHEN: 단일 DB 환경 (MySQL, PostgreSQL)
+PATTERN: `@GeneratedValue(strategy = GenerationType.IDENTITY)`
+EXCEPTION: 분산 환경 / 애플리케이션 레벨 ID 생성 → `UUID` + `GenerationType.UUID` (JPA 3.1+)
+
+RULE: 양방향 관계 동기화 편의 메서드
+WHEN: 양방향 연관관계 설정 시
+PATTERN:
+```java
+@Entity
+public class Order {
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderLine> lines = new ArrayList<>();
+
+    public void addLine(OrderLine line) {
+        lines.add(line);
+        line.setOrder(this);  // 양방향 동기화
+    }
+}
+```
+
+---
+
+## @Transactional 전략
+
+> 기본 규칙은 상단 `핵심 컨벤션` 섹션 참조.
+
+RULE: 클래스 레벨 `@Transactional(readOnly = true)` 기본 적용
+WHEN: Service 클래스 전반
+WHY: 쓰기 방지 + Hibernate dirty checking 비용 절감 + 읽기 전용 DB 라우팅 가능
+PATTERN:
+```java
+@Service
+@Transactional(readOnly = true)
+public class OrderService {
+    public Order findById(UUID id) { ... }  // readOnly 상속
+
+    @Transactional  // 쓰기 메서드만 재정의
+    public Order create(CreateOrderRequest req) { ... }
+}
+```
+
+RULE: `Propagation.REQUIRES_NEW` 사용 기준
+WHEN: 외부 트랜잭션과 독립적으로 커밋/롤백해야 할 때
+PATTERN:
+```java
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+public void saveAuditLog(AuditEntry entry) { ... }  // 외부 롤백과 무관하게 기록
+```
+EXCEPTION: 단순 중첩 호출은 기본 `REQUIRED` 사용 — REQUIRES_NEW는 별도 커넥션 사용
+
+RULE: 격리 수준 — `READ_COMMITTED` 기본
+WHEN: 대부분의 OLTP 트랜잭션
+PATTERN: DB 기본값(MySQL InnoDB, PostgreSQL) 유지. 명시적 변경이 필요한 경우만:
+```java
+@Transactional(isolation = Isolation.READ_COMMITTED)
+```
+EXCEPTION: 금융 집계처럼 반복 읽기 일관성이 중요한 경우 `REPEATABLE_READ`
+
+RULE: 트랜잭션 내 이벤트 발행은 `@TransactionalEventListener`
+WHEN: 도메인 이벤트를 트랜잭션 커밋 후 처리해야 할 때
+PATTERN:
+```java
+// 발행 (커밋 전)
+publisher.publishEvent(new OrderPlacedEvent(order.id()));
+
+// 수신 (커밋 후 실행 보장)
+@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+public void onOrderPlaced(OrderPlacedEvent event) {
+    notificationService.sendConfirmation(event.orderId());
+}
+```
+
+---
+
+## 페이징 처리
+
+RULE: 페이징 API는 `Pageable` + `Page<T>` 표준 사용
+WHEN: 목록 조회 API
+PATTERN:
+```java
+// Repository
+Page<Order> findByCustomerId(UUID customerId, Pageable pageable);
+
+// Controller
+@GetMapping
+public Page<OrderResponse> list(
+    @RequestParam UUID customerId,
+    @PageableDefault(size = 20, sort = "createdAt", direction = DESC) Pageable pageable
+) {
+    return orderService.findByCustomer(customerId, pageable).map(OrderResponse::from);
+}
+```
+
+RULE: `Page<T>` vs `Slice<T>` 선택 기준
+WHEN: 페이징 응답 타입 결정
+PATTERN:
+- `Page<T>`: 전체 건수(`totalElements`) 필요 시 (관리자 화면, 데이터 그리드)
+- `Slice<T>`: 전체 건수 불필요 시 (모바일 무한 스크롤, 다음 페이지 존재 여부만 필요)
+  → `Slice`는 COUNT 쿼리를 생략하여 성능 우세
+EXCEPTION: 대용량 데이터에서 `Page`의 COUNT 쿼리가 병목이면 `Slice`로 전환
+
+RULE: Offset 페이징 vs Cursor 페이징
+WHEN: 대규모 데이터 또는 실시간 갱신이 잦은 목록
+PATTERN:
+- Offset(`Pageable`): 건수가 적거나 고정된 데이터, 구현 간단
+- Cursor(Keyset): 수백만 건 이상, 실시간 추가/삭제 빈번, 무한 스크롤
+  → `WHERE id > :lastId ORDER BY id LIMIT :size` 방식
 
 ---
 

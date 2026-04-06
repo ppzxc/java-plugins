@@ -19,11 +19,11 @@ public class Order {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Order other)) return false;
-        return id.equals(other.id);
+        return id != null && id.equals(other.id);  // transient(id=null) 객체는 불일치
     }
 
     @Override
-    public int hashCode() { return id.hashCode(); }
+    public int hashCode() { return Objects.hashCode(id); }  // JPA 프록시 환경 null-safe
 }
 ```
 EXCEPTION: 없음 — 비즈니스 속성으로 equals를 구현하지 않는다

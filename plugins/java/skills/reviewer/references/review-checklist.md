@@ -55,7 +55,7 @@ FIX: 데이터 조작 로직을 도메인 객체 내부 메서드(`order.cancel(
 
 CHECK: DTO가 일반 class로 구현됨 (record 미사용)
 WHY: record가 더 간결하고 불변 보장
-FIX: `record`로 교체
+FIX: `record`로 교체 (→ `coding-rules.md` DTO 규칙 참조)
 
 CHECK: 생성자 매개변수가 4개 이상인데 Builder 미사용
 WHY: 호출자 실수 가능성 높음

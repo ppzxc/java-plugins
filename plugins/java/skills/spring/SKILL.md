@@ -18,6 +18,17 @@ version: 0.0.6
 - Spring Data JPA
 - 순수 도메인 Service (비즈니스 로직만, 인프라 의존 없음) → java:coder
 
+### 경계 예시 — `java:spring` vs `java:coder`
+
+| 작업 | 스킬 |
+|------|------|
+| `@Service class OrderServiceImpl` — Spring DI/트랜잭션 포함 | `java:spring` |
+| `@RestController class OrderController` — Spring MVC | `java:spring` |
+| `@Repository class JpaOrderRepository` — Spring Data JPA | `java:spring` |
+| `record CreateOrderRequest(...)` — 순수 DTO 정의 | `java:coder` |
+| `interface OrderRepository` — 도메인 인터페이스 | `java:coder` |
+| `class OrderNotFoundException` — 도메인 예외 | `java:coder` |
+
 ## Decision Tree
 
 ### 어떤 레이어 코드를 작성하는가?

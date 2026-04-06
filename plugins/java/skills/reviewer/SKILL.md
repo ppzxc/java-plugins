@@ -5,7 +5,7 @@ description: >
   "review this code"), or multi-file quality audits. NOT for generating new code
   or writing tests.
 user-invocable: true
-version: 0.0.5
+version: 0.0.6
 ---
 
 # java:reviewer

@@ -43,7 +43,26 @@ EXCEPTION: 성능상 가변이 필수인 경우
 
 ## Null 처리
 
-RULE: null 반환 금지
+RULE: 계층별 null 표현 전략 — 레이어에 따라 다르게 사용
+WHEN: null 가능성이 있는 값의 타입 결정
+PATTERN:
+- **도메인 레이어** (Entity, VO, Domain Service, Repository Interface): `Optional<T>` 반환. null 반환 전면 금지.
+- **Spring API 레이어** (Controller, @Service public API): `@Nullable`/`@NonNull` 어노테이션 사용 (`org.springframework.lang`).
+  도메인 레이어에서 올라온 `Optional`을 Spring 레이어 경계에서 unwrap하여 `@Nullable` 반환 가능.
+```java
+// 도메인 레이어: Optional
+public interface OrderRepository {
+    Optional<Order> findById(UUID id);
+}
+
+// Spring 레이어: @Nullable (외부 API 계약)
+public @Nullable OrderResponse findOrNull(@NonNull UUID id) {
+    return orderRepository.findById(id).map(OrderResponse::from).orElse(null);
+}
+```
+EXCEPTION: 성능 임계 경로에서 `Optional` 박싱 비용이 문제가 될 때 — `@Nullable` 직접 사용 가능
+
+RULE: null 반환 금지 (도메인 레이어)
 WHEN: 메서드 반환값이 없을 수 있을 때
 PATTERN: `Optional<T>` 반환, 빈 컬렉션 반환(`List.of()`)
 EXCEPTION: 성능 임계 경로에서 `Optional` 박싱 비용이 문제가 될 때

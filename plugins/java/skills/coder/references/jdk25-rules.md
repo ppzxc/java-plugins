@@ -6,8 +6,10 @@
 
 ## Records
 
-RULE: 데이터 운반 객체는 record 사용
-WHEN: DTO, 이벤트 페이로드, 설정값 홀더
+> DTO→record 기본 규칙은 `coding-rules.md` 참조. 여기서는 JDK 16+ record 고급 기능만 다룬다.
+
+RULE: record Compact Constructor로 생성 시 자가 검증
+WHEN: Value Object (VO) 또는 검증이 필요한 record 정의
 PATTERN:
 ```java
 public record Money(BigDecimal amount, Currency currency) {
@@ -19,7 +21,7 @@ public record Money(BigDecimal amount, Currency currency) {
     }
 }
 ```
-EXCEPTION: JPA `@Entity` (프록시 생성 불가), 가변 상태 필요, 상속 필요
+EXCEPTION: 단순 DTO는 컴팩트 생성자 불필요 — Bean Validation 어노테이션으로 대체
 
 RULE: record는 상속 불가 — 공통 동작은 인터페이스로
 PATTERN:

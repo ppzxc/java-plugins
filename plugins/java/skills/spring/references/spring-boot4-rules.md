@@ -366,16 +366,21 @@ public class Order {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    public Long getId() { return id; }  // 게터 필수: 프록시 필드 직접 접근 불가
+
     // Hibernate 프록시 호환: instanceof + Objects.hashCode(id)
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Order other)) return false;
-        return id != null && id.equals(other.id);
+        // other.getId() 사용: CGLIB 프록시는 private 필드 미상속 → other.id 는 null
+        return id != null && id.equals(other.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);  // id가 null이어도 안전
+        return getClass().hashCode();  // IDENTITY 전략: id가 null→값으로 변경되어 hashCode 불안정
+        // NOTE: 모든 Order 인스턴스가 동일 hashCode → HashSet에서 O(n). equals()는 정확.
+        // UUID 도메인 생성 방식 사용 시 Objects.hashCode(id) 로 변경 가능
     }
 }
 ```

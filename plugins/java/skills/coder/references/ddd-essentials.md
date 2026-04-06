@@ -16,14 +16,17 @@ public class Order {
     @Id
     private final UUID id;
 
+    public UUID getId() { return id; }  // 게터 필수: equals/hashCode에서 프록시 필드 직접 접근 불가
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Order other)) return false;
-        return id != null && id.equals(other.id);  // transient(id=null) 객체는 불일치
+        // other.getId() 사용: Hibernate CGLIB 프록시는 private 필드 미상속 → other.id 는 null
+        return id != null && id.equals(other.getId());
     }
 
     @Override
-    public int hashCode() { return Objects.hashCode(id); }  // JPA 프록시 환경 null-safe
+    public int hashCode() { return Objects.hashCode(id); }  // UUID는 생성 시 할당 → hashCode 안정
 }
 ```
 EXCEPTION: 없음 — 비즈니스 속성으로 equals를 구현하지 않는다

@@ -5,7 +5,7 @@ description: >
   NOT for test file writing (java:tester), code review (java:reviewer), or
   Spring Boot patterns (java:spring).
 user-invocable: true
-version: 0.0.4
+version: 0.0.5
 ---
 
 # java:coder
@@ -69,7 +69,8 @@ version: 0.0.4
 │   → Virtual Thread: Executors.newVirtualThreadPerTaskExecutor()
 │   → synchronized 허용 (JDK 24+ Pinning 해결됨)
 │   → Timeout 등 고급 제어 필요시에만 ReentrantLock
-│   → ThreadLocal 금지 → ScopedValue
+│   → 애플리케이션 코드에서 ThreadLocal 금지 → ScopedValue (JDK 24+ 확정)
+│   → Spring Security/MDC 등 프레임워크 내부 ThreadLocal은 건드리지 말 것
 │
 ├─ CPU 바운드 (계산, 이미지 처리)
 │   → Platform Thread Pool
@@ -99,11 +100,13 @@ version: 0.0.4
 ### 외부 서비스를 호출한다면?
 
 ```
-모든 외부 호출에 필수 체크:
-├─ Timeout 설정
-├─ Circuit Breaker 적용
-├─ Fallback 구현
-└─ Retry 정책 (멱등성 확인 후)
+외부(third-party/외부 시스템) 호출 필수 체크:
+├─ Timeout 설정 (내부 서비스 포함 모든 외부 호출)
+├─ Circuit Breaker 적용 (third-party API, 외부 SaaS 등)
+├─ Fallback 구현 (Circuit Breaker 적용 시)
+└─ Retry 정책 (멱등성 확인 후, exponential backoff 적용)
+
+내부 마이크로서비스 호출: Timeout 필수, Circuit Breaker는 선택적
 
 이 중 하나라도 없으면 추가한다.
 ```
@@ -135,7 +138,7 @@ DO:
 - DTO → `record`
 - 도메인 에러 → `Sealed Class (Result Pattern)` 반환
 - 동시성 제어 → `synchronized` 기본 사용 (단, Timeout 필요시 `ReentrantLock`)
-- 스레드 로컬 → `ScopedValue` (ThreadLocal 금지)
+- 애플리케이션 코드의 스레드 로컬 → `ScopedValue` (ThreadLocal 금지, 프레임워크 내부 제외)
 - null 반환 금지 → `Optional` 또는 빈 컬렉션
 - 의존성은 안쪽 방향 (Controller → Service → Domain)
 - 외부 호출 → Timeout + Circuit Breaker + Fallback 필수
@@ -155,7 +158,8 @@ DON'T:
 |------|----------|
 | 테스트 코드 작성 | `java:tester` |
 | 코드 리뷰 요청 | `java:reviewer` |
-| Spring Controller/Service/Repository/Test | `java:spring` |
+| Spring @Service (트랜잭션/DI 관련) / Controller / Repository / Spring 테스트 | `java:spring` |
+| 순수 도메인 Service (인프라 의존 없음) | `java:coder` 유지 |
 
 ## References
 - `references/coding-rules.md` — 객체 생성, 동시성, 예외/Result, 아키텍처, 안정성, 패턴

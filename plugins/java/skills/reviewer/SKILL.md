@@ -5,7 +5,7 @@ description: >
   "review this code"), or multi-file quality audits. NOT for generating new code
   or writing tests.
 user-invocable: true
-version: 0.0.4
+version: 0.0.5
 ---
 
 # java:reviewer
@@ -54,7 +54,8 @@ version: 0.0.4
 │   → OK (JDK 24+ Pinning 해결됨). 단, Timeout 필요 시 ReentrantLock 제안.
 │
 ├─ ThreadLocal 사용?
-│   → Critical: ScopedValue 마이그레이션 필수
+│   → 애플리케이션 도메인 코드: Critical — ScopedValue 마이그레이션 권장
+│   → 프레임워크 내부(Spring Security/MDC 등): OK — 건드리지 말 것
 │
 ├─ 공유 가변 필드 (non-final)?
 │   → Critical: AtomicXxx, ConcurrentHashMap, 불변화
@@ -107,6 +108,7 @@ Controller → Service → Domain ← Repository Interface
 4. 빈약한 도메인 모델 방지 (Behavior in Entity)?
 5. 원시 타입 집착 방지 (Value Objects)?
 6. 의존성 방향이 안쪽?
+7. 외부(third-party) 호출에 Timeout 있음? Circuit Breaker는 외부 SaaS/API에만?
 
 ## Delegation
 

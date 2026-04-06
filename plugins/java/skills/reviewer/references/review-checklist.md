@@ -6,10 +6,12 @@
 ---
 
 ## 동시성 안전성 (Critical)
+> 상세 규칙 → `jdk25-rules.md` 참조
 
-CHECK: `ThreadLocal` 사용
-WHY: Virtual Thread 환경에서 누수 위험, ScopedValue가 더 안전
-FIX: `ScopedValue` 마이그레이션 권장
+CHECK: `ThreadLocal` 사용 (애플리케이션 도메인 코드)
+WHY: Virtual Thread 환경에서 누수 위험
+FIX: `ScopedValue` 마이그레이션 권장 (JDK 24+ 확정)
+NOTE: 프레임워크 내부(Spring Security, Logback MDC 등) ThreadLocal은 정상 — 건드리지 말 것
 
 CHECK: 공유 가변 상태 (non-final 필드를 여러 스레드가 접근)
 WHY: 데이터 경쟁 조건
@@ -94,14 +96,15 @@ FIX: `private static final` 상수로 추출
 ---
 
 ## 안정성 (Release It!)
+> 상세 규칙 → `coding-rules.md` 참조
 
 CHECK: 외부 서비스 호출에 Timeout 미설정
 WHY: 외부 서비스 지연 시 스레드 무한 점유, 연쇄 장애
 FIX: 모든 외부 HTTP/DB/메시지 호출에 Timeout 필수
 
-CHECK: 외부 서비스 장애 시 Fallback 없음
+CHECK: third-party API/외부 SaaS 호출에 Circuit Breaker 없음
 WHY: 부분 장애가 전체 장애로 확산
-FIX: Circuit Breaker + Fallback 메서드 추가
+FIX: Circuit Breaker + Fallback 메서드 추가 (내부 마이크로서비스는 Timeout만 필수)
 
 ---
 

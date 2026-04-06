@@ -5,18 +5,18 @@ description: >
   (@WebMvcTest, @DataJpaTest, @SpringBootTest), ProblemDetail error handling,
   API versioning, or any Spring Framework 7 / Jakarta EE 11 patterns.
 user-invocable: true
-version: 0.0.4
+version: 0.0.5
 ---
 
 # java:spring
 
 ## Trigger
-- Spring Boot 4 관련 코드 작업 전반
-- `@RestController`, `@Service`, `@Repository`, `@Component` 파일
-- Spring 테스트 어노테이션 (`@WebMvcTest`, `@DataJpaTest`, `@SpringBootTest`)
+- Spring @Service (트랜잭션/DI), @RestController, @Repository, @Component 파일 작성
+- Spring 테스트 어노테이션 사용 (@WebMvcTest, @DataJpaTest, @SpringBootTest)
 - ProblemDetail 에러 처리
 - Spring Security 설정
 - Spring Data JPA
+- 순수 도메인 Service (비즈니스 로직만, 인프라 의존 없음) → java:coder
 
 ## Decision Tree
 
@@ -70,7 +70,7 @@ version: 0.0.4
 │
 ├─ Controller (HTTP 레이어만)
 │   → @WebMvcTest(MyController.class)
-│   → @MockBean으로 Service 교체
+│   → @MockitoBean으로 Service 교체 (Spring Boot 4+)
 │   → MockMvc로 요청/응답 검증
 │
 ├─ Repository (DB 쿼리)
@@ -84,7 +84,7 @@ version: 0.0.4
     → RestAssured 또는 TestRestTemplate
 ```
 
-### `@Mock` vs `@MockBean`?
+### `@Mock` vs `@MockitoBean`?
 
 ```
 스프링 컨텍스트가 필요한가?
@@ -94,9 +94,13 @@ version: 0.0.4
 │   → @ExtendWith(MockitoExtension.class)
 │
 └─ 필요 (슬라이스/통합 테스트)
-    → @MockBean (Spring Test)
+    → @MockitoBean (Spring Boot 4+, 구: @MockBean Deprecated)
     → @WebMvcTest, @DataJpaTest 안에서 사용
+    → 테스트 전략/Mock 상세 사용법 → java:tester
 ```
+
+NOTE: 테스트 전략(단위/통합 비율, TDD 사이클, Mock 범위 결정)은 → java:tester
+      Spring 테스트 어노테이션 사용법(@WebMvcTest, @DataJpaTest, @SpringBootTest)은 이 스킬에서 제공
 
 ### JPA 관계에서 N+1이 발생한다면?
 
@@ -128,7 +132,7 @@ DON'T:
 - `@Autowired` 필드 주입
 - Controller에 비즈니스 로직
 - Repository에 `@Transactional`
-- @Mock 대신 @MockBean (스프링 컨텍스트 없는 테스트에서)
+- 스프링 컨텍스트 없는 단위 테스트에서 @MockitoBean 사용 (이때는 @Mock 써야 함)
 - 연관 엔티티 EAGER 로딩 기본값
 
 ## Delegation

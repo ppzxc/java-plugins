@@ -39,6 +39,24 @@ public class OrderService {
 ```
 EXCEPTION: Controller, Repository에 `@Transactional` 금지
 
+RULE: Result Pattern과 @Transactional 함께 사용 시 명시적 롤백 처리
+WHEN: Service 레이어에서 Result Pattern 사용 + @Transactional 조합
+WHY: @Transactional은 RuntimeException 발생 시 자동 롤백. Result.Failure 반환은 예외가 아니므로 트랜잭션이 커밋된다.
+PATTERN:
+```java
+@Transactional
+public OrderResult placeOrder(CreateOrderRequest req) {
+    var result = validateOrder(req);
+    if (result instanceof OrderResult.Failure) {
+        // 명시적 롤백 마킹 (이미 저장된 내용이 있을 경우 대비)
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        return result;
+    }
+    return orderRepository.save(buildOrder(req));
+}
+```
+EXCEPTION: 트랜잭션 내에서 아무 쓰기 작업도 없으면 롤백 마킹 불필요 (읽기 전용 트랜잭션)
+
 RULE: null safety — `@NonNull`/`@Nullable` 어노테이션 사용 (Spring Framework 7)
 WHEN: public API 매개변수/반환값
 PATTERN:
@@ -49,6 +67,14 @@ import org.springframework.lang.Nullable;
 public @NonNull Order findById(@NonNull UUID id) { ... }
 public @Nullable Order findOrNull(@NonNull UUID id) { ... }
 ```
+
+RULE: Lombok 사용 범위
+WHEN: 의존성 주입이 필요한 Service/Controller/Configuration 클래스
+PATTERN: `@RequiredArgsConstructor` 사용 가능 (생성자 자동 생성)
+EXCEPTION:
+- 도메인 모델(Entity, VO): Lombok 전면 금지 (명시적 Builder 또는 정적 팩토리 사용)
+- `@Data`, `@Builder`, `@Setter`: 전면 금지 (캡슐화 파괴)
+- JPA Entity에서 `@NoArgsConstructor(access = AccessLevel.PROTECTED)` 허용
 
 ---
 
@@ -102,6 +128,53 @@ RULE: API 버전관리는 URL 경로 방식 (`/api/v1/`)
 WHEN: REST API 버전 관리
 PATTERN: `/api/v1/orders`, `/api/v2/orders`
 EXCEPTION: 헤더 버전관리는 클라이언트 구현 복잡도 증가로 지양
+
+---
+
+## HTTP 클라이언트
+
+RULE: 외부 API 호출은 RestClient 또는 @HttpExchange 사용
+WHEN: 외부 REST API 호출
+
+PATTERN (RestClient — 명령형):
+```java
+@Bean
+RestClient restClient(RestClient.Builder builder) {
+    return builder
+        .baseUrl("https://api.example.com")
+        .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+        .build();
+}
+
+// 사용
+PaymentResponse result = restClient.post()
+    .uri("/payments")
+    .body(request)
+    .retrieve()
+    .body(PaymentResponse.class);
+```
+
+PATTERN (@HttpExchange — 선언적):
+```java
+@HttpExchange("https://api.example.com")
+interface PaymentClient {
+    @PostExchange("/payments")
+    PaymentResponse charge(@RequestBody PaymentRequest request);
+
+    @GetExchange("/payments/{id}")
+    PaymentResponse findById(@PathVariable String id);
+}
+
+// 등록
+@Bean
+PaymentClient paymentClient(RestClient.Builder builder) {
+    return HttpServiceProxyFactory
+        .builderFor(RestClientAdapter.create(builder.baseUrl("https://api.example.com").build()))
+        .build()
+        .createClient(PaymentClient.class);
+}
+```
+EXCEPTION: 단순 1-2회 호출은 RestClient 직접 사용이 더 간결
 
 ---
 
@@ -186,7 +259,7 @@ PATTERN:
 @WebMvcTest(OrderController.class)
 class OrderControllerTest {
     @Autowired MockMvc mockMvc;
-    @MockBean OrderService orderService;  // 협력 빈은 MockBean
+    @MockitoBean OrderService orderService;  // Spring Boot 4+: @MockBean Deprecated → @MockitoBean
 
     @Test
     void create_validRequest_returns201() throws Exception {
@@ -234,11 +307,14 @@ class OrderIntegrationTest {
 }
 ```
 
-RULE: `@Mock` vs `@MockBean`
+RULE: `@Mock` vs `@MockitoBean`
 WHEN: 테스트 유형에 따라 선택
 PATTERN:
 - `@Mock` (Mockito 순수): 스프링 컨텍스트 없는 단위 테스트
-- `@MockBean` (Spring): `@WebMvcTest`, `@DataJpaTest` 등 스프링 컨텍스트 내 Mock
+- `@MockitoBean` (Spring Boot 4+): `@WebMvcTest`, `@DataJpaTest` 등 스프링 컨텍스트 내 Mock
+  (이전의 `@MockBean`은 Spring Boot 3.4에서 Deprecated, Spring Boot 4.0에서 제거)
+- `@MockitoSpyBean`: 실제 빈을 spy하여 일부만 stubbing
+> 상세 Mock 사용법 → `testing-rules.md` 참조
 
 ---
 
@@ -302,6 +378,28 @@ public record PaymentProperties(
 
 ---
 
+## Virtual Thread + Spring 통합
+
+RULE: Spring Boot에서 Virtual Thread 활성화
+WHEN: I/O 바운드 처리량이 중요한 Spring MVC 애플리케이션
+PATTERN:
+```yaml
+spring:
+  threads:
+    virtual:
+      enabled: true  # Spring Boot 3.2+, Tomcat/Jetty에 Virtual Thread 적용
+```
+EXCEPTION: Spring WebFlux는 이미 반응형이므로 Virtual Thread 불필요
+
+RULE: Virtual Thread 활성화 시 주의사항
+WHEN: `spring.threads.virtual.enabled=true` 사용 시
+PATTERN:
+- ThreadLocal 기반 라이브러리(Spring Security, MDC 등)는 프레임워크가 자동 처리
+- CPU 집약적 작업(@Scheduled 태스크 등)은 별도 Platform Thread Pool 사용
+- DB 커넥션 풀 크기를 Virtual Thread 수에 맞게 조정 불필요 (Pinning 해결됨)
+
+---
+
 ## Observability
 
 RULE: 헬스체크와 메트릭은 Actuator
@@ -321,3 +419,30 @@ management:
 RULE: 분산 추적 ID는 로그에 포함
 WHEN: 마이크로서비스 또는 멀티 스레드 환경
 PATTERN: Micrometer Tracing + 로그 패턴에 `%X{traceId}` 추가
+
+---
+
+## Spring Security 7
+
+RULE: SecurityFilterChain Bean으로 보안 설정 (WebSecurityConfigurerAdapter 제거됨)
+WHEN: Spring Security 설정
+PATTERN:
+```java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/public/**").permitAll()
+                .anyRequest().authenticated())
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+            .build();
+    }
+}
+```
+EXCEPTION: 없음 — WebSecurityConfigurerAdapter는 Spring Security 6에서 제거됨

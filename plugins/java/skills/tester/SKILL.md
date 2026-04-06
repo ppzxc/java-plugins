@@ -4,7 +4,7 @@ description: >
   file creation/modification, explicit TDD workflow requests, test strategy decisions,
   or coverage analysis. NOT for writing production code (java:coder handles that).
 user-invocable: true
-version: 0.0.4
+version: 0.0.5
 ---
 
 # java:tester
@@ -66,7 +66,7 @@ Red-Green-Refactor 사이클:
 │
 ├─ 외부 서비스 (이메일, SMS, 외부 API)
 │   → Mock 사용 (경계에서만)
-│   → @Mock (단위), @MockBean (스프링 슬라이스)
+│   → @Mock (단위), @MockitoBean (스프링 슬라이스, Spring Boot 4+)
 │
 ├─ DB / 영속성
 │   → Real DB 선호 (H2 또는 Testcontainers)
@@ -135,7 +135,8 @@ DON'T:
 | 상황 | 위임 스킬 |
 |------|----------|
 | 프로덕션 코드 작성 | `java:coder` |
-| Spring 테스트 어노테이션 | `java:spring` |
+| Spring 테스트 어노테이션 사용법 (@WebMvcTest, @DataJpaTest 등) | `java:spring` |
+| 순수 도메인 로직 Mock 전략 | 이 스킬에서 제공 |
 
 ## References
 - `references/testing-rules.md` — TDD 사이클, Mock 전략, AssertJ 패턴, 레거시 테스트

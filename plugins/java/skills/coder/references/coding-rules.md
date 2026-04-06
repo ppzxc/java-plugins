@@ -68,7 +68,7 @@ void process(Optional<User> user) {} // X
 - I/O 바운드 → Virtual Thread (`newVirtualThreadPerTaskExecutor()`)
 - CPU 바운드 → Platform Thread Pool (`newFixedThreadPool(availableProcessors())`)
 - 동기화 → `synchronized` 기본 사용 (JDK 24+ JEP 491로 Pinning 해결됨)
-- 스레드 로컬 → 애플리케이션 도메인 코드에서 `ScopedValue` 사용 (Preview, --enable-preview 필요)
+- 스레드 로컬 → 애플리케이션 도메인 코드에서 `ScopedValue` 사용 (JDK 24+ 확정)
   단, Spring Security/Logback MDC/트랜잭션 동기화 등 프레임워크 내부는 ThreadLocal 유지
 - 공유 가변 상태 → `AtomicXxx`, `ConcurrentHashMap`, 불변 객체
 
@@ -108,16 +108,30 @@ RULE: 비즈니스 실패는 Sealed Class Result Pattern 반환
 WHEN: 예상 가능한 비즈니스 실패 (잔액 부족, 상품 품절, 권한 없음 등)
 PATTERN:
 ```java
-sealed interface OrderResult permits OrderResult.Success, OrderResult.Failure {}
-record Success(Order order) implements OrderResult {}
-sealed interface Failure extends OrderResult permits InsufficientBalance, OutOfStock {}
-record InsufficientBalance(Money required, Money actual) implements Failure {}
+public sealed interface OrderResult {
+    record Success(Order order) implements OrderResult {}
+    sealed interface Failure extends OrderResult {
+        record InsufficientBalance(Money required, Money actual) implements Failure {}
+        record OutOfStock(String itemId) implements Failure {}
+    }
+}
+
+// 호출자
+OrderResult result = orderService.placeOrder(request);
+return switch (result) {
+    case OrderResult.Success s -> ResponseEntity.ok(s.order());
+    case OrderResult.Failure f -> ResponseEntity.badRequest().build();
+};
 ```
-WHY: Exception은 제어 흐름에 사용하지 않는다. 비즈니스 실패는 타입 시스템으로 명시한다.
+// 비즈니스 실패는 타입 시스템으로 명시한다. Exception은 제어 흐름에 사용하지 않는다.
 
 RULE: 인프라/시스템 에러는 Unchecked Exception 사용
 WHEN: DB 접속 실패, 네트워크 오류 등 회복 불가능한 인프라 오류
 PATTERN: RuntimeException 서브클래스 throw
+```java
+// DB 접속 실패, 네트워크 오류 등
+throw new DatabaseException("connection failed", cause);
+```
 
 RULE: 프로그래밍 오류에는 unchecked exception
 WHEN: 전제조건 위반, 버그

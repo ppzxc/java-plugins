@@ -5,7 +5,7 @@ description: >
   (@WebMvcTest, @DataJpaTest, @SpringBootTest), ProblemDetail error handling,
   API versioning, or any Spring Framework 7 / Jakarta EE 11 patterns.
 user-invocable: true
-version: 0.0.4
+version: 0.0.5
 ---
 
 # java:spring

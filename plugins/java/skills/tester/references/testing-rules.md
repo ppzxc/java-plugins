@@ -81,11 +81,14 @@ Order order = Order.create("item", 1);
 order.addLine(product, 2);
 ```
 
-RULE: `@Mock` vs `@MockBean` 구분
+RULE: `@Mock` vs `@MockitoBean` 구분
 WHEN: 테스트 유형에 따라
 PATTERN:
-- `@Mock` (Mockito): 스프링 컨텍스트 없는 단위 테스트
-- `@MockBean` (Spring): `@WebMvcTest`, `@DataJpaTest` 등 스프링 컨텍스트가 필요한 슬라이스 테스트
+- `@Mock` (Mockito): 스프링 컨텍스트 없는 단위 테스트 — @ExtendWith(MockitoExtension.class) 사용
+- `@MockitoBean` (Spring Boot 4+): @WebMvcTest, @DataJpaTest 등 스프링 컨텍스트 내 Mock
+  (Spring Boot 3.4에서 @MockBean Deprecated, Spring Boot 4.0에서 @MockitoBean으로 대체)
+- `@MockitoSpyBean`: 실제 빈을 spy하여 일부 메서드만 stubbing
+EXCEPTION: Spring Boot 3.3 이하는 @MockBean 사용
 
 ---
 

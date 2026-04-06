@@ -123,6 +123,8 @@ ScopedValue.where(CONTEXT, new RequestContext(userId))
 // 읽기
 RequestContext ctx = CONTEXT.get();
 ```
+EXCEPTION: 프레임워크 내부(Spring Security SecurityContext, Logback MDC, 트랜잭션 동기화 매니저 등)는
+ThreadLocal을 계속 사용한다. 애플리케이션 도메인 코드에서만 ScopedValue로 전환하라.
 
 RULE: Virtual Thread는 I/O 바운드 작업에만 사용
 WHEN: 작업 유형 구분
@@ -138,7 +140,7 @@ var cpuExecutor = Executors.newFixedThreadPool(
 
 ---
 
-## Structured Concurrency (JDK 21+)
+## Structured Concurrency (JDK 25 Preview — JEP 505, --enable-preview 필요)
 
 RULE: 관련 작업 묶음에 StructuredTaskScope 사용
 WHEN: 여러 비동기 작업을 함께 관리해야 할 때
@@ -163,6 +165,9 @@ try (var scope = new StructuredTaskScope.ShutdownOnSuccess<Response>()) {
 ---
 
 ## ScopedValue
+
+> NOTE: ScopedValue는 JDK 24에서 확정된 기능이다 (JEP 487). 별도 플래그 불필요.
+> StructuredTaskScope는 JDK 25에서도 Preview 상태이므로 `--enable-preview` 필요 (JEP 505).
 
 RULE: 요청 컨텍스트 전달에 ScopedValue 사용
 WHEN: HTTP 요청 컨텍스트, 트랜잭션 ID, 사용자 정보를 호출 체인에 전달
@@ -221,7 +226,7 @@ EXCEPTION: 없음 — `list.get(0)`, `list.get(list.size()-1)` 대신 사용
 
 ---
 
-## Stable Values (JDK 25)
+## Stable Values (JDK 25 Preview — JEP 502, --enable-preview 필요)
 
 RULE: 지연 초기화 싱글톤에 StableValue 사용
 WHEN: 초기화 비용이 높고 지연이 필요한 불변 값
@@ -234,3 +239,52 @@ public Config getConfig() {
 }
 ```
 EXCEPTION: 스프링 빈은 컨테이너가 관리하므로 불필요
+
+---
+
+## Stream Gatherers (JDK 25 — JEP 485)
+
+RULE: 커스텀 중간 연산이 필요할 때 Stream Gatherer 사용
+WHEN: 기존 Stream API(map, filter, flatMap 등)로 표현하기 어려운 상태 기반 중간 연산
+PATTERN:
+```java
+// 슬라이딩 윈도우 (내장 Gatherer 활용)
+List<List<Integer>> windows = IntStream.rangeClosed(1, 10)
+    .boxed()
+    .gather(Gatherers.windowSliding(3))
+    .toList();
+
+// 커스텀 Gatherer: 누적 합계
+Gatherer<Integer, ?, Integer> runningTotal = Gatherer.of(
+    () -> new int[]{0},
+    (state, element, downstream) -> {
+        state[0] += element;
+        return downstream.push(state[0]);
+    }
+);
+
+List<Integer> totals = List.of(1, 2, 3, 4, 5)
+    .stream()
+    .gather(runningTotal)
+    .toList();
+```
+EXCEPTION: 단순 변환/필터는 기존 map/filter 사용 (Gatherer는 상태가 필요할 때만)
+
+---
+
+## Flexible Constructor Bodies (JDK 25 — JEP 513)
+
+RULE: 생성자에서 super() 호출 전 코드 실행이 필요할 때 활용
+WHEN: 부모 클래스 생성자 호출 전 인수 검증, 변환 또는 준비 작업이 필요한 경우
+PATTERN:
+```java
+public class PositiveNumber extends Number {
+    public PositiveNumber(int value) {
+        // JDK 25 이전: super() 호출 전 코드 불가
+        // JDK 25 이후: super() 호출 전 변수 선언 및 검증 가능
+        if (value <= 0) throw new IllegalArgumentException("must be positive: " + value);
+        super(value);
+    }
+}
+```
+EXCEPTION: 부모 생성자 인수가 단순한 경우 — 이전 방식(super 먼저) 유지가 더 명확
